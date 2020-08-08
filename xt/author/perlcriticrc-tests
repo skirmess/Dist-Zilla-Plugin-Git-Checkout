@@ -1,0 +1,9 @@
+[ControlStructures::ProhibitPostfixControls]
+flowcontrol = die skip
+
+[-Compatibility::PerlMinimumVersionAndWhy]
+[-ErrorHandling::RequireCarping]
+[-Freenode::DiscouragedModules]
+[-Modules::RequireExplicitInclusion]
+[-NamingConventions::Capitalization]
+[-RegularExpressions::ProhibitUselessTopic]
