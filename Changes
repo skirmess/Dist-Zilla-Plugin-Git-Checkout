@@ -2,4 +2,6 @@ Revision history for Dist-Zilla-Plugin-Git-Checkout
 
 {{$NEXT}}
 
+0.001  2020-08-08 23:40:44 UTC
+
   - Initial release
