@@ -9,7 +9,7 @@ build_requires:
   Test::More: '0.88'
   Test::TempDir::Tiny: '0'
   lib: '0'
-  perl: '5.010'
+  perl: '5.006'
 configure_requires:
   ExtUtils::MakeMaker: '0'
   perl: '5.006'
@@ -36,7 +36,7 @@ requires:
   Path::Tiny: '0'
   Term::ANSIColor: '0'
   namespace::autoclean: '0'
-  perl: '5.010'
+  perl: '5.006'
   strict: '0'
   warnings: '0'
 resources:
