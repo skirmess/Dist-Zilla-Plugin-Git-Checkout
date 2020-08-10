@@ -27,7 +27,7 @@ no_index:
 provides:
   Dist::Zilla::Plugin::Git::Checkout:
     file: lib/Dist/Zilla/Plugin/Git/Checkout.pm
-    version: '0.001'
+    version: '0.002'
 requires:
   Dist::Zilla::Role::BeforeRelease: '0'
   Git::Wrapper: '0'
@@ -43,7 +43,7 @@ resources:
   bugtracker: https://github.com/skirmess/Dist-Zilla-Plugin-Git-Checkout/issues
   homepage: https://github.com/skirmess/Dist-Zilla-Plugin-Git-Checkout
   repository: https://github.com/skirmess/Dist-Zilla-Plugin-Git-Checkout.git
-version: '0.001'
+version: '0.002'
 x_generated_by_perl: v5.24.0
 x_serialization_backend: 'YAML::Tiny version 1.70'
 x_spdx_expression: BSD-2-Clause-FreeBSD

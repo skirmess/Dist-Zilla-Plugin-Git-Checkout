@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 use Moose;
 
@@ -136,7 +136,7 @@ Dist::Zilla::Plugin::Git::Checkout - clone and checkout a Git repository
 
 =head1 VERSION
 
-Version 0.001
+Version 0.002
 
 =head1 SYNOPSIS
 
