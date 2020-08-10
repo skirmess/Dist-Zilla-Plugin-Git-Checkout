@@ -45,6 +45,8 @@ sub main {
         {
             my $git = Git::Wrapper->new( $repo_path->stringify );
             $git->init;
+            $git->config( 'user.email', 'test@example.com' );
+            $git->config( 'user.name',  'Test' );
 
             my $file_A = $repo_path->child('A');
             my $file_B = $repo_path->child('B');
@@ -124,7 +126,7 @@ sub main {
 
             note('default');
             {
-                my $workdir = $tzil->root->child('my_repo');
+                my $workdir = path( $tzil->root )->child('my_repo');
                 ok( $workdir->is_dir(),                'workspace is checked out' );
                 ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
                 ok( -f $workdir->child('A'),           '... with the correct file ...' );
@@ -143,7 +145,7 @@ sub main {
 
             note('with dir');
             {
-                my $workdir = $tzil->root->child('my_repo2');
+                my $workdir = path( $tzil->root )->child('my_repo2');
                 ok( $workdir->is_dir(),                'workspace is checked out' );
                 ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
                 ok( -f $workdir->child('A'),           '... with the correct file' );
@@ -162,7 +164,7 @@ sub main {
 
             note('with dir and push_url');
             {
-                my $workdir = $tzil->root->child('my_repo3');
+                my $workdir = path( $tzil->root )->child('my_repo3');
                 ok( $workdir->is_dir(),                'workspace is checked out' );
                 ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
                 ok( -f $workdir->child('A'),           '... with the correct file' );
@@ -181,7 +183,7 @@ sub main {
 
             note('with dir, and checkout');
             {
-                my $workdir = $tzil->root->child('my_repo_dev');
+                my $workdir = path( $tzil->root )->child('my_repo_dev');
                 ok( $workdir->is_dir(),                'workspace is checked out' );
                 ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
                 ok( -f $workdir->child('A'),           '... with the correct file (A)' )
@@ -201,7 +203,7 @@ sub main {
 
             note('with dir, checkout, and push_url');
             {
-                my $workdir = $tzil->root->child('my_repo_dev2');
+                my $workdir = path( $tzil->root )->child('my_repo_dev2');
                 ok( $workdir->is_dir(),                'workspace is checked out' );
                 ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
                 ok( -f $workdir->child('A'),           '... with the correct file (A)' )
@@ -252,6 +254,8 @@ sub main {
 
             my $git = Git::Wrapper->new( $repo_path2->stringify );
             $git->init;
+            $git->config( 'user.email', 'test@example.com' );
+            $git->config( 'user.name',  'Test' );
 
             my $file_C = $repo_path2->child('C');
             $file_C->spew('419');
@@ -316,7 +320,7 @@ sub main {
                 },
             );
 
-            my $workdir = $tzil->root->child('ws');
+            my $workdir = path( $tzil->root )->child('ws');
             ok( $workdir->is_dir(),                'workspace is checked out' );
             ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
             ok( -f $workdir->child('A'),           '... with the correct file (A)' )
@@ -356,7 +360,7 @@ sub main {
                 },
             );
 
-            my $workdir = $tzil->root->child('ws');
+            my $workdir = path( $tzil->root )->child('ws');
             ok( $workdir->is_dir(),                'workspace is checked out' );
             ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
             ok( -f $workdir->child('A'),           '... with the correct file' )
@@ -401,7 +405,7 @@ sub main {
                 },
             );
 
-            my $workdir = $tzil->root->child('ws');
+            my $workdir = path( $tzil->root )->child('ws');
             ok( $workdir->is_dir(),                'workspace is checked out' );
             ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
             ok( -f $workdir->child('A'),           '... with the correct file' )
@@ -451,7 +455,7 @@ sub main {
                 },
             );
 
-            my $workdir = $tzil->root->child('ws');
+            my $workdir = path( $tzil->root )->child('ws');
             ok( $workdir->is_dir(),                'workspace is checked out' );
             ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
             ok( -f $workdir->child('A'),           '... with the correct file' )
@@ -501,7 +505,7 @@ sub main {
                 },
             );
 
-            my $workdir = $tzil->root->child('ws');
+            my $workdir = path( $tzil->root )->child('ws');
             ok( $workdir->is_dir(),                'workspace is checked out' );
             ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
             ok( -f $workdir->child('A'),           '... with the correct file' )
