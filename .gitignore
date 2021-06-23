@@ -4,5 +4,5 @@
 .build
 .perlcritic_package.yml
 Dist-Zilla-Plugin-Git-Checkout-*
-dzil-inc
+dzil-bundle
 tmp
