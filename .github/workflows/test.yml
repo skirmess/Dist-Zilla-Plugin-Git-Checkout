@@ -699,10 +699,6 @@ jobs:
       - name: cpanm --version
         run: ${{ steps.perl.outputs.bin }} ${{ steps.installsitebin.outputs.path }}\cpanm --version
 
-        # https://github.com/rjbs/Dist-Zilla/issues/669
-      - run: ${{ steps.perl.outputs.bin }} ${{ steps.installsitebin.outputs.path }}\cpanm --verbose --notest PPI
-        if: matrix.perl == '5.20.3'
-
       - name: cpanm --installdeps --notest .
         run: ${{ steps.perl.outputs.bin }} ${{ steps.installsitebin.outputs.path }}\cpanm --verbose --installdeps --notest .
         working-directory: ${{ github.event.repository.name }}
