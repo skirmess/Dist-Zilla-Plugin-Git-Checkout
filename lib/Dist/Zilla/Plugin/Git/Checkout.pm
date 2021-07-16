@@ -107,6 +107,8 @@ sub _checkout {
     $self->log("Checking out $checkout in $dir");
     $git->checkout($checkout);
 
+    $git->pull('--ff-only');
+
     return;
 }
 

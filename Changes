@@ -2,6 +2,8 @@ Revision history for Dist-Zilla-Plugin-Git-Checkout
 
 {{$NEXT}}
 
+  - After checking the brandch out, do a "git pull --ff-only" to actually update it
+
 0.002  2020-08-10 16:33:27 UTC
 
   - Don't assume that root from Test::DZil is a Path::Tiny object
