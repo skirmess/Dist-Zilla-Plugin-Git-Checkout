@@ -85,7 +85,7 @@ sub _checkout {
         }
 
         $self->log("Fetching $repo in $dir");
-        $git->fetch('--tags');
+        $git->fetch( '--tags', '-f' );
     }
     else {
         $self->log("Cloning $repo into $dir");
