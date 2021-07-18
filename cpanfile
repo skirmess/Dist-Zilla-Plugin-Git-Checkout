@@ -18,6 +18,7 @@ on test => sub {
     requires 'Dist::Zilla::Role::Plugin';
     requires 'Test::DZil';
     requires 'Test::Fatal';
+    requires 'Test::MockModule';
     requires 'Test::More', '0.88';
     requires 'Test::TempDir::Tiny';
     requires 'lib';

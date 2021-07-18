@@ -66,6 +66,9 @@ sub before_release {
 sub _checkout {
     my ($self) = @_;
 
+    $self->log_fatal(q{No 'git' in PATH}) if !Git::Wrapper->has_git_in_path;
+    $self->log_fatal(q{Your 'git' is to old}) if !Git::Wrapper->supports_status_porcelain;
+
     my $dir      = path( $self->zilla->root )->child( path( $self->dir ) )->absolute;
     my $repo     = $self->repo;
     my $checkout = $self->checkout;
