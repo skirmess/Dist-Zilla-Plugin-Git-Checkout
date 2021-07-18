@@ -85,7 +85,7 @@ sub _checkout {
         }
 
         $self->log("Fetching $repo in $dir");
-        $git->fetch;
+        $git->fetch('--tags');
     }
     else {
         $self->log("Cloning $repo into $dir");
@@ -107,7 +107,8 @@ sub _checkout {
     $self->log("Checking out $checkout in $dir");
     $git->checkout($checkout);
 
-    $git->pull('--ff-only');
+    # This fails if we're not on a tracking branch - ignore the failure
+    eval { $git->pull('--ff-only'); };    ## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
 
     return;
 }

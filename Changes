@@ -2,6 +2,10 @@ Revision history for Dist-Zilla-Plugin-Git-Checkout
 
 {{$NEXT}}
 
+  - Fetch new and changed tags
+  - Ignore failures from "git pull --ff-only" because this only works for tracking branches
+  - Improved testing
+
 0.003  2021-07-16 20:58:22 UTC
 
   - After checking the brandch out, do a "git pull --ff-only" to actually update it

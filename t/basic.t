@@ -68,6 +68,9 @@ sub main {
             $git->commit( { message => 'commit on dev branch' } );
 
             $git->checkout('master');
+
+            # branch master, 2 commits, A ->  7
+            # branch dev,    3 commits, A -> 11, B -> 13
         }
 
         note('fresh checkouts');
@@ -529,6 +532,111 @@ sub main {
             unlike( exception { $tzil->release }, qr{ \QAborting release\E }xsm, '... release is aborted if dirty' )
               or diag 'got log messages: ', explain $tzil->log_messages;
         }
+
+        note('checkout branch and tag');
+        {
+            my $git = Git::Wrapper->new( $repo_path->stringify );
+            $git->tag('my-tag');
+
+            my $tzil = Builder->from_config(
+                { dist_root => tempdir() },
+                {
+                    add_files => {
+                        'source/dist.ini' => simple_ini(
+                            [
+                                'Git::Checkout',
+                                'branchCheckout',
+                                {
+                                    repo => $repo_path->stringify(),
+                                },
+                            ],
+                            [
+                                'Git::Checkout',
+                                'tagCheckout',
+                                {
+                                    repo     => $repo_path->stringify(),
+                                    dir      => 'my_tag',
+                                    checkout => 'my-tag',
+                                },
+                            ],
+                            [
+                                '=Local::UpdateRemote',
+                                {
+                                    repo => $repo_path->stringify(),
+                                },
+                            ],
+
+                            # branch master, 3 commits, A ->  7
+                            # branch dev,    3 commits, A -> 11, B -> 13, C -> 1087
+                            [
+                                'Git::Checkout',
+                                'branchUpdate',
+                                {
+                                    repo => $repo_path->stringify(),
+                                },
+                            ],
+                            [
+                                'Git::Checkout',
+                                'tagUpdate',
+                                {
+                                    repo     => $repo_path->stringify(),
+                                    dir      => 'my_tag',
+                                    checkout => 'my-tag',
+                                },
+                            ],
+                        ),
+                    },
+                },
+            );
+
+            note(q{checkout and update branch 'master'});
+            {
+                my $workdir = path( $tzil->root )->child('my_repo');
+                ok( $workdir->is_dir(),                'workspace is checked out' );
+                ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
+                ok( -f $workdir->child('A'),           '... with the correct file ...' );
+                ok( !-e $workdir->child('B'),          '... only' );
+                ok( -f $workdir->child('C'),           '... updated file exists' )
+                  and is( $workdir->child('C')->slurp, '1087', '... with the correct content' );
+
+                my @config = $git->config('-l');
+                is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
+
+                is( ( scalar grep { $_ eq "[branchCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+                is( ( scalar grep { $_ eq "[branchCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+                is( ( scalar grep { $_ eq "[branchUpdate] Fetching $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... fetch message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+                is( ( scalar grep { $_ eq "[branchUpdate] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+            }
+
+            note(q{checkout and update tag 'my-tag'});
+            {
+                my $workdir = path( $tzil->root )->child('my_tag');
+                ok( $workdir->is_dir(),                'workspace is checked out' );
+                ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
+                ok( -f $workdir->child('A'),           '... with the correct file ...' );
+                ok( !-e $workdir->child('B'),          '... only' );
+                ok( -f $workdir->child('C'),           '... updated file exists' );
+                is( $workdir->child('C')->slurp, '1087', '... with the correct content' );
+
+                my @config = $git->config('-l');
+                is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
+
+                is( ( scalar grep { $_ eq "[tagCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+                is( ( scalar grep { $_ eq "[tagCheckout] Checking out my-tag in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+                is( ( scalar grep { $_ eq "[tagUpdate] Fetching $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+                is( ( scalar grep { $_ eq "[tagUpdate] Checking out my-tag in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+            }
+
+        }
+
     }
 
     done_testing;
