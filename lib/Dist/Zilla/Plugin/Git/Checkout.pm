@@ -68,51 +68,81 @@ sub _checkout {
 
     $self->log_fatal(q{No 'git' in PATH}) if !Git::Wrapper->has_git_in_path;
 
+    print STDERR `git --version`;
+
     my $dir      = path( $self->zilla->root )->child( path( $self->dir ) )->absolute;
     my $repo     = $self->repo;
     my $checkout = $self->checkout;
 
+    print STDERR "Line: ", __LINE__, "\n";
+
     my $git = Git::Wrapper->new( $dir->stringify );
+    print STDERR "Line: ", __LINE__, "\n";
 
     if ( -d $dir ) {
+    print STDERR "Line: ", __LINE__, "\n";
         $self->log_fatal("Directory $dir exists but is not a Git repository") if !-d $dir->child('.git');
+    print STDERR "Line: ", __LINE__, "\n";
 
         $self->log_fatal(q{Your 'git' is to old}) if !$git->supports_status_porcelain;
+    print STDERR "Line: ", __LINE__, "\n";
 
         my ($origin) = $git->config('remote.origin.url');
+    print STDERR "Line: ", __LINE__, "\n";
         $self->log_fatal("Directory $dir is not a Git repository for $repo") if $origin ne $repo;
+    print STDERR "Line: ", __LINE__, "\n";
 
         if ( $git->status->is_dirty ) {
+    print STDERR "Line: ", __LINE__, "\n";
             $self->log( colored( "Git workspace $dir is dirty - skipping checkout", 'yellow' ) );
+    print STDERR "Line: ", __LINE__, "\n";
             $self->_is_dirty(1);
+    print STDERR "Line: ", __LINE__, "\n";
             return;
         }
+    print STDERR "Line: ", __LINE__, "\n";
 
         $self->log("Fetching $repo in $dir");
+    print STDERR "Line: ", __LINE__, "\n";
         $git->fetch( '--tags', '-f' );
+    print STDERR "Line: ", __LINE__, "\n";
     }
     else {
+    print STDERR "Line: ", __LINE__, "\n";
         $self->log("Cloning $repo into $dir");
+    print STDERR "Line: ", __LINE__, "\n";
         $git->clone( $repo, $dir->stringify );
+    print STDERR "Line: ", __LINE__, "\n";
     }
 
+    print STDERR "Line: ", __LINE__, "\n";
     # Configure or remove the push url
     if ( defined $self->push_url ) {
+    print STDERR "Line: ", __LINE__, "\n";
         $git->remote( 'set-url', '--push', 'origin', $self->push_url );
     }
     else {
+    print STDERR "Line: ", __LINE__, "\n";
         my ($push_url) = eval { $git->config('remote.origin.pushurl'); };
+    print STDERR "Line: ", __LINE__, "\n";
         if ( defined $push_url ) {
+    print STDERR "Line: ", __LINE__, "\n";
             $git->remote( 'set-url', '--delete', '--push', 'origin', $push_url );
+    print STDERR "Line: ", __LINE__, "\n";
         }
+    print STDERR "Line: ", __LINE__, "\n";
     }
 
     # We don't know what the default branch is. It's easier to just check it out again.
+    print STDERR "Line: ", __LINE__, "\n";
     $self->log("Checking out $checkout in $dir");
+    print STDERR "Line: ", __LINE__, "\n";
     $git->checkout($checkout);
+    print STDERR "Line: ", __LINE__, "\n";
 
     # This fails if we're not on a tracking branch - ignore the failure
     eval { $git->pull('--ff-only'); };    ## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
+    print STDERR "Line: ", __LINE__, "\n";
 
     return;
 }
