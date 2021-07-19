@@ -760,6 +760,13 @@ jobs:
         env:
           PERL_USE_UNSAFE_INC: 0
 
+      - name: prove -vl t
+        run: prove -vl t
+        working-directory: ${{ github.event.repository.name }}
+        env:
+          AUTOMATED_TESTING: 1
+          PERL_USE_UNSAFE_INC: 0
+
       - name: make test
         run: ${{ steps.make.outputs.bin }} test
         working-directory: ${{ github.event.repository.name }}
