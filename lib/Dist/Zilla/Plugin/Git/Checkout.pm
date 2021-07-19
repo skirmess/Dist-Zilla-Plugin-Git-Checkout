@@ -137,6 +137,11 @@ sub _checkout {
     print STDERR "Line: ", __LINE__, "\n";
     $self->log("Checking out $checkout in $dir");
     print STDERR "Checking out $checkout in $dir";
+    {
+        print `cd $dir && git tag`;
+        print `cd $dir && git status`;
+        print `cd $dir && git checkout $checkout`;
+    }
     print STDERR "Line: ", __LINE__, "\n";
     $git->checkout($checkout);
     print STDERR "Line: ", __LINE__, "\n";
