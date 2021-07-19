@@ -641,8 +641,8 @@ sub main {
 #                  or diag 'got log messages: ', explain $tzil->log_messages;
 #            }
 #
-#        }
-#
+        }
+
     }
 
     done_testing;
