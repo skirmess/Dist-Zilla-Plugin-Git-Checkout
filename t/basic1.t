@@ -16,25 +16,24 @@ use lib path(__FILE__)->parent->child('lib')->stringify;
 main();
 
 sub main {
-    ok(1);
-#    note('no attributes');
-#    {
-#        my $exception = exception {
-#            Builder->from_config(
-#                { dist_root => tempdir() },
-#                {
-#                    add_files => {
-#                        'source/dist.ini' => simple_ini(
-#                            'Git::Checkout',
-#                        ),
-#                    },
-#                },
-#            );
-#        };
-#
-#        ok( defined $exception, q{throws an exception without a 'repo'} );
-#    }
-#
+    note('no attributes');
+    {
+        my $exception = exception {
+            Builder->from_config(
+                { dist_root => tempdir() },
+                {
+                    add_files => {
+                        'source/dist.ini' => simple_ini(
+                            'Git::Checkout',
+                        ),
+                    },
+                },
+            );
+        };
+
+        ok( defined $exception, q{throws an exception without a 'repo'} );
+    }
+
 #  SKIP:
 #    {
 #        skip 'Cannot find Git in PATH', 1 if !Git::Wrapper->has_git_in_path;

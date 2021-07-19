@@ -16,28 +16,27 @@ use lib path(__FILE__)->parent->child('lib')->stringify;
 main();
 
 sub main {
-    ok(1);
-#    note('no attributes');
-#    {
-#        my $exception = exception {
-#            Builder->from_config(
-#                { dist_root => tempdir() },
-#                {
-#                    add_files => {
-#                        'source/dist.ini' => simple_ini(
-#                            'Git::Checkout',
-#                        ),
-#                    },
-#                },
-#            );
-#        };
-#
-#        ok( defined $exception, q{throws an exception without a 'repo'} );
-#    }
-#
-#  SKIP:
-#    {
-#        skip 'Cannot find Git in PATH', 1 if !Git::Wrapper->has_git_in_path;
+    note('no attributes');
+    {
+        my $exception = exception {
+            Builder->from_config(
+                { dist_root => tempdir() },
+                {
+                    add_files => {
+                        'source/dist.ini' => simple_ini(
+                            'Git::Checkout',
+                        ),
+                    },
+                },
+            );
+        };
+
+        ok( defined $exception, q{throws an exception without a 'repo'} );
+    }
+
+  SKIP:
+    {
+        skip 'Cannot find Git in PATH', 1 if !Git::Wrapper->has_git_in_path;
 #
 #        {
 #            my $git = Git::Wrapper->new( tempdir() );
@@ -45,41 +44,41 @@ sub main {
 #            skip q{Your Git does not support 'git status --porcelain'}, 1 if !$git->supports_status_porcelain;
 #        }
 #
-#        note('create Git test repository');
-#        my $repo_path = path( tempdir() )->child('my_repo.git')->absolute;
-#        mkdir $repo_path or die "Cannot create $repo_path";
-#
-#        {
-#            my $git = Git::Wrapper->new( $repo_path->stringify );
-#            $git->init;
-#            $git->config( 'user.email', 'test@example.com' );
-#            $git->config( 'user.name',  'Test' );
-#
-#            my $file_A = $repo_path->child('A');
-#            my $file_B = $repo_path->child('B');
-#            $file_A->spew('5');
-#            $git->add('A');
-#            $git->commit( { message => 'initial commit' } );
-#
-#            $file_A->spew('7');
-#            $git->add('A');
-#            $git->commit( { message => 'second commit' } );
-#
-#            $git->branch('dev');
-#            $git->checkout('dev');
-#
-#            $file_A->spew('11');
-#            $git->add('A');
-#            $file_B->spew('13');
-#            $git->add('B');
-#            $git->commit( { message => 'commit on dev branch' } );
-#
-#            $git->checkout('master');
-#
-#            # branch master, 2 commits, A ->  7
-#            # branch dev,    3 commits, A -> 11, B -> 13
-#        }
-#
+        note('create Git test repository');
+        my $repo_path = path( tempdir() )->child('my_repo.git')->absolute;
+        mkdir $repo_path or die "Cannot create $repo_path";
+
+        {
+            my $git = Git::Wrapper->new( $repo_path->stringify );
+            $git->init;
+            $git->config( 'user.email', 'test@example.com' );
+            $git->config( 'user.name',  'Test' );
+
+            my $file_A = $repo_path->child('A');
+            my $file_B = $repo_path->child('B');
+            $file_A->spew('5');
+            $git->add('A');
+            $git->commit( { message => 'initial commit' } );
+
+            $file_A->spew('7');
+            $git->add('A');
+            $git->commit( { message => 'second commit' } );
+
+            $git->branch('dev');
+            $git->checkout('dev');
+
+            $file_A->spew('11');
+            $git->add('A');
+            $file_B->spew('13');
+            $git->add('B');
+            $git->commit( { message => 'commit on dev branch' } );
+
+            $git->checkout('master');
+
+            # branch master, 2 commits, A ->  7
+            # branch dev,    3 commits, A -> 11, B -> 13
+        }
+
 #        note('fresh checkouts');
 #        {
 #            my $tzil = Builder->from_config(
@@ -644,7 +643,7 @@ sub main {
 #
 #        }
 #
-#    }
+    }
 
     done_testing;
 
