@@ -539,11 +539,11 @@ sub main {
               or diag 'got log messages: ', explain $tzil->log_messages;
         }
 
-#        note('checkout branch and tag');
-#        {
-#            my $git = Git::Wrapper->new( $repo_path->stringify );
-#            $git->tag('my-tag');
-#
+        note('checkout branch and tag');
+        {
+            my $git = Git::Wrapper->new( $repo_path->stringify );
+            $git->tag('my-tag');
+
 #            my $tzil = Builder->from_config(
 #                { dist_root => tempdir() },
 #                {
@@ -641,8 +641,7 @@ sub main {
 #                  or diag 'got log messages: ', explain $tzil->log_messages;
 #            }
 #
-#        }
-#
+        }
     }
 
     done_testing;

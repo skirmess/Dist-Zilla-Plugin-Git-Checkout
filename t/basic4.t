@@ -574,27 +574,27 @@ sub main {
 
                             # branch master, 3 commits, A ->  7
                             # branch dev,    3 commits, A -> 11, B -> 13, C -> 1087
-                            [
-                                'Git::Checkout',
-                                'branchUpdate',
-                                {
-                                    repo => $repo_path->stringify(),
-                                },
-                            ],
-                            [
-                                'Git::Checkout',
-                                'tagUpdate',
-                                {
-                                    repo     => $repo_path->stringify(),
-                                    dir      => 'my_tag',
-                                    checkout => 'my-tag',
-                                },
-                            ],
+#                            [
+#                                'Git::Checkout',
+#                                'branchUpdate',
+#                                {
+#                                    repo => $repo_path->stringify(),
+#                                },
+#                            ],
+#                            [
+#                                'Git::Checkout',
+#                                'tagUpdate',
+#                                {
+#                                    repo     => $repo_path->stringify(),
+#                                    dir      => 'my_tag',
+#                                    checkout => 'my-tag',
+#                                },
+#                            ],
                         ),
                     },
                 },
             );
-
+#
 #            note(q{checkout and update branch 'master'});
 #            {
 #                my $workdir = path( $tzil->root )->child('my_repo');
@@ -642,7 +642,6 @@ sub main {
 #            }
 #
         }
-
     }
 
     done_testing;

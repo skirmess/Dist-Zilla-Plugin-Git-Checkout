@@ -544,18 +544,18 @@ sub main {
             my $git = Git::Wrapper->new( $repo_path->stringify );
             $git->tag('my-tag');
 
-#            my $tzil = Builder->from_config(
-#                { dist_root => tempdir() },
-#                {
-#                    add_files => {
-#                        'source/dist.ini' => simple_ini(
-#                            [
-#                                'Git::Checkout',
-#                                'branchCheckout',
-#                                {
-#                                    repo => $repo_path->stringify(),
-#                                },
-#                            ],
+            my $tzil = Builder->from_config(
+                { dist_root => tempdir() },
+                {
+                    add_files => {
+                        'source/dist.ini' => simple_ini(
+                            [
+                                'Git::Checkout',
+                                'branchCheckout',
+                                {
+                                    repo => $repo_path->stringify(),
+                                },
+                            ],
 #                            [
 #                                'Git::Checkout',
 #                                'tagCheckout',
@@ -590,10 +590,10 @@ sub main {
 #                                    checkout => 'my-tag',
 #                                },
 #                            ],
-#                        ),
-#                    },
-#                },
-#            );
+                        ),
+                    },
+                },
+            );
 #
 #            note(q{checkout and update branch 'master'});
 #            {
