@@ -301,191 +301,191 @@ sub main {
             like( $exception, qr{ \Q[Git::Checkout] Directory \E .*\Qws is not a Git repository for $repo_path\E }xsm, 'throws an exception if the workspace directory exists but is not a Git workspace for the correct repository' );
         }
 
-#        note('dirty dir');
-#        {
-#            my $tzil = Builder->from_config(
-#                { dist_root => tempdir() },
-#                {
-#                    add_files => {
-#                        'source/dist.ini' => simple_ini(
-#                            [
-#                                'Git::Checkout',
-#                                {
-#                                    repo => $repo_path->stringify(),
-#                                    dir  => 'ws',
-#                                },
-#                            ],
-#                            '=Local::MakeWorkspaceDirty',
-#                            [
-#                                'Git::Checkout',
-#                                'secondCheckout',
-#                                {
-#                                    repo => $repo_path->stringify(),
-#                                    dir  => 'ws',
-#                                },
-#                            ],
-#                        ),
-#                    },
-#                },
-#            );
-#
-#            my $workdir = path( $tzil->root )->child('ws');
-#            ok( $workdir->is_dir(),                'workspace is checked out' );
-#            ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
-#            ok( -f $workdir->child('A'),           '... with the correct file (A)' )
-#              and is( $workdir->child('A')->slurp, '67', '... with the correct (dirty) content' );
-#
-#            is( ( scalar grep { $_ =~ m{ ^\Q[secondCheckout] \E.*\QGit workspace $workdir is dirty - skipping checkout\E }xsm } @{ $tzil->log_messages() } ), 1, '... correct message is logged (is dirty)' )
-#              or diag 'got log messages: ', explain $tzil->log_messages;
-#            is( ( scalar grep { $_ eq "[secondCheckout] Fetching $repo_path in $workdir" } @{ $tzil->log_messages() } ), 0, '... _checkout stops when dirty' )
-#              or diag 'got log messages: ', explain $tzil->log_messages;
-#        }
-#
-#        note('fetch');
-#        {
-#            my $tzil = Builder->from_config(
-#                { dist_root => tempdir() },
-#                {
-#                    add_files => {
-#                        'source/dist.ini' => simple_ini(
-#                            [
-#                                'Git::Checkout',
-#                                {
-#                                    repo     => $repo_path->stringify(),
-#                                    dir      => 'ws',
-#                                    checkout => 'dev',
-#                                },
-#                            ],
-#                            [
-#                                'Git::Checkout',
-#                                'secondCheckout',
-#                                {
-#                                    repo => $repo_path->stringify(),
-#                                    dir  => 'ws',
-#                                },
-#                            ],
-#                        ),
-#                    },
-#                },
-#            );
-#
-#            my $workdir = path( $tzil->root )->child('ws');
-#            ok( $workdir->is_dir(),                'workspace is checked out' );
-#            ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
-#            ok( -f $workdir->child('A'),           '... with the correct file' )
-#              and is( $workdir->child('A')->slurp, '7', '... with the correct (dirty) content' );
-#
-#            is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
-#              or diag 'got log messages: ', explain $tzil->log_messages;
-#            is( ( scalar grep { $_ eq "[Git::Checkout] Checking out dev in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-#              or diag 'got log messages: ', explain $tzil->log_messages;
-#
-#            is( ( scalar grep { $_ eq "[secondCheckout] Fetching $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... fetch message got logged' )
-#              or diag 'got log messages: ', explain $tzil->log_messages;
-#            is( ( scalar grep { $_ eq "[secondCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-#              or diag 'got log messages: ', explain $tzil->log_messages;
-#        }
-#
-#        note('push_url gets removed');
-#        {
-#            my $tzil = Builder->from_config(
-#                { dist_root => tempdir() },
-#                {
-#                    add_files => {
-#                        'source/dist.ini' => simple_ini(
-#                            [
-#                                'Git::Checkout',
-#                                {
-#                                    repo     => $repo_path->stringify(),
-#                                    dir      => 'ws',
-#                                    push_url => 'http://example.com/my_repo.git',
-#                                },
-#                            ],
-#                            [
-#                                'Git::Checkout',
-#                                'secondCheckout',
-#                                {
-#                                    repo => $repo_path->stringify(),
-#                                    dir  => 'ws',
-#                                },
-#                            ],
-#                        ),
-#                    },
-#                },
-#            );
-#
-#            my $workdir = path( $tzil->root )->child('ws');
-#            ok( $workdir->is_dir(),                'workspace is checked out' );
-#            ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
-#            ok( -f $workdir->child('A'),           '... with the correct file' )
-#              and is( $workdir->child('A')->slurp, '7', '... with the correct (dirty) content' );
-#
-#            my $git    = Git::Wrapper->new( $workdir->stringify );
-#            my @config = $git->config('-l');
-#            is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
-#
-#            is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
-#              or diag 'got log messages: ', explain $tzil->log_messages;
-#            is( ( scalar grep { $_ eq "[Git::Checkout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-#              or diag 'got log messages: ', explain $tzil->log_messages;
-#
-#            is( ( scalar grep { $_ eq "[secondCheckout] Fetching $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... fetch message got logged' )
-#              or diag 'got log messages: ', explain $tzil->log_messages;
-#            is( ( scalar grep { $_ eq "[secondCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-#              or diag 'got log messages: ', explain $tzil->log_messages;
-#        }
-#
-#        note('release is aborted if workspace is dirty');
-#        {
-#            my $tzil = Builder->from_config(
-#                { dist_root => tempdir() },
-#                {
-#                    add_files => {
-#                        'source/dist.ini' => simple_ini(
-#                            'FakeRelease',
-#                            [
-#                                'Git::Checkout',
-#                                {
-#                                    repo => $repo_path->stringify(),
-#                                    dir  => 'ws',
-#                                },
-#                            ],
-#                            '=Local::MakeWorkspaceDirty',
-#                            [
-#                                'Git::Checkout',
-#                                'secondCheckout',
-#                                {
-#                                    repo => $repo_path->stringify(),
-#                                    dir  => 'ws',
-#                                },
-#                            ],
-#                        ),
-#                    },
-#                },
-#            );
-#
-#            my $workdir = path( $tzil->root )->child('ws');
-#            ok( $workdir->is_dir(),                'workspace is checked out' );
-#            ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
-#            ok( -f $workdir->child('A'),           '... with the correct file' )
-#              and is( $workdir->child('A')->slurp, '67', '... with the correct (dirty) content' );
-#
-#            my $git    = Git::Wrapper->new( $workdir->stringify );
-#            my @config = $git->config('-l');
-#            is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
-#
-#            is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
-#              or diag 'got log messages: ', explain $tzil->log_messages;
-#            is( ( scalar grep { $_ eq "[Git::Checkout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-#              or diag 'got log messages: ', explain $tzil->log_messages;
-#
-#            is( ( scalar grep { $_ =~ m{ ^\Q[secondCheckout] \E.*\QGit workspace $workdir is dirty - skipping checkout\E }xsm } @{ $tzil->log_messages() } ), 1, '... correct message is logged (is dirty)' )
-#              or diag 'got log messages: ', explain $tzil->log_messages;
-#
-#            like( exception { $tzil->release }, qr{ \QAborting release\E }xsm, '... release is aborted if dirty' )
-#              or diag 'got log messages: ', explain $tzil->log_messages;
-#        }
-#
+        note('dirty dir');
+        {
+            my $tzil = Builder->from_config(
+                { dist_root => tempdir() },
+                {
+                    add_files => {
+                        'source/dist.ini' => simple_ini(
+                            [
+                                'Git::Checkout',
+                                {
+                                    repo => $repo_path->stringify(),
+                                    dir  => 'ws',
+                                },
+                            ],
+                            '=Local::MakeWorkspaceDirty',
+                            [
+                                'Git::Checkout',
+                                'secondCheckout',
+                                {
+                                    repo => $repo_path->stringify(),
+                                    dir  => 'ws',
+                                },
+                            ],
+                        ),
+                    },
+                },
+            );
+
+            my $workdir = path( $tzil->root )->child('ws');
+            ok( $workdir->is_dir(),                'workspace is checked out' );
+            ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
+            ok( -f $workdir->child('A'),           '... with the correct file (A)' )
+              and is( $workdir->child('A')->slurp, '67', '... with the correct (dirty) content' );
+
+            is( ( scalar grep { $_ =~ m{ ^\Q[secondCheckout] \E.*\QGit workspace $workdir is dirty - skipping checkout\E }xsm } @{ $tzil->log_messages() } ), 1, '... correct message is logged (is dirty)' )
+              or diag 'got log messages: ', explain $tzil->log_messages;
+            is( ( scalar grep { $_ eq "[secondCheckout] Fetching $repo_path in $workdir" } @{ $tzil->log_messages() } ), 0, '... _checkout stops when dirty' )
+              or diag 'got log messages: ', explain $tzil->log_messages;
+        }
+
+        note('fetch');
+        {
+            my $tzil = Builder->from_config(
+                { dist_root => tempdir() },
+                {
+                    add_files => {
+                        'source/dist.ini' => simple_ini(
+                            [
+                                'Git::Checkout',
+                                {
+                                    repo     => $repo_path->stringify(),
+                                    dir      => 'ws',
+                                    checkout => 'dev',
+                                },
+                            ],
+                            [
+                                'Git::Checkout',
+                                'secondCheckout',
+                                {
+                                    repo => $repo_path->stringify(),
+                                    dir  => 'ws',
+                                },
+                            ],
+                        ),
+                    },
+                },
+            );
+
+            my $workdir = path( $tzil->root )->child('ws');
+            ok( $workdir->is_dir(),                'workspace is checked out' );
+            ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
+            ok( -f $workdir->child('A'),           '... with the correct file' )
+              and is( $workdir->child('A')->slurp, '7', '... with the correct (dirty) content' );
+
+            is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
+              or diag 'got log messages: ', explain $tzil->log_messages;
+            is( ( scalar grep { $_ eq "[Git::Checkout] Checking out dev in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+              or diag 'got log messages: ', explain $tzil->log_messages;
+
+            is( ( scalar grep { $_ eq "[secondCheckout] Fetching $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... fetch message got logged' )
+              or diag 'got log messages: ', explain $tzil->log_messages;
+            is( ( scalar grep { $_ eq "[secondCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+              or diag 'got log messages: ', explain $tzil->log_messages;
+        }
+
+        note('push_url gets removed');
+        {
+            my $tzil = Builder->from_config(
+                { dist_root => tempdir() },
+                {
+                    add_files => {
+                        'source/dist.ini' => simple_ini(
+                            [
+                                'Git::Checkout',
+                                {
+                                    repo     => $repo_path->stringify(),
+                                    dir      => 'ws',
+                                    push_url => 'http://example.com/my_repo.git',
+                                },
+                            ],
+                            [
+                                'Git::Checkout',
+                                'secondCheckout',
+                                {
+                                    repo => $repo_path->stringify(),
+                                    dir  => 'ws',
+                                },
+                            ],
+                        ),
+                    },
+                },
+            );
+
+            my $workdir = path( $tzil->root )->child('ws');
+            ok( $workdir->is_dir(),                'workspace is checked out' );
+            ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
+            ok( -f $workdir->child('A'),           '... with the correct file' )
+              and is( $workdir->child('A')->slurp, '7', '... with the correct (dirty) content' );
+
+            my $git    = Git::Wrapper->new( $workdir->stringify );
+            my @config = $git->config('-l');
+            is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
+
+            is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
+              or diag 'got log messages: ', explain $tzil->log_messages;
+            is( ( scalar grep { $_ eq "[Git::Checkout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+              or diag 'got log messages: ', explain $tzil->log_messages;
+
+            is( ( scalar grep { $_ eq "[secondCheckout] Fetching $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... fetch message got logged' )
+              or diag 'got log messages: ', explain $tzil->log_messages;
+            is( ( scalar grep { $_ eq "[secondCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+              or diag 'got log messages: ', explain $tzil->log_messages;
+        }
+
+        note('release is aborted if workspace is dirty');
+        {
+            my $tzil = Builder->from_config(
+                { dist_root => tempdir() },
+                {
+                    add_files => {
+                        'source/dist.ini' => simple_ini(
+                            'FakeRelease',
+                            [
+                                'Git::Checkout',
+                                {
+                                    repo => $repo_path->stringify(),
+                                    dir  => 'ws',
+                                },
+                            ],
+                            '=Local::MakeWorkspaceDirty',
+                            [
+                                'Git::Checkout',
+                                'secondCheckout',
+                                {
+                                    repo => $repo_path->stringify(),
+                                    dir  => 'ws',
+                                },
+                            ],
+                        ),
+                    },
+                },
+            );
+
+            my $workdir = path( $tzil->root )->child('ws');
+            ok( $workdir->is_dir(),                'workspace is checked out' );
+            ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
+            ok( -f $workdir->child('A'),           '... with the correct file' )
+              and is( $workdir->child('A')->slurp, '67', '... with the correct (dirty) content' );
+
+            my $git    = Git::Wrapper->new( $workdir->stringify );
+            my @config = $git->config('-l');
+            is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
+
+            is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
+              or diag 'got log messages: ', explain $tzil->log_messages;
+            is( ( scalar grep { $_ eq "[Git::Checkout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+              or diag 'got log messages: ', explain $tzil->log_messages;
+
+            is( ( scalar grep { $_ =~ m{ ^\Q[secondCheckout] \E.*\QGit workspace $workdir is dirty - skipping checkout\E }xsm } @{ $tzil->log_messages() } ), 1, '... correct message is logged (is dirty)' )
+              or diag 'got log messages: ', explain $tzil->log_messages;
+
+            like( exception { $tzil->release }, qr{ \QAborting release\E }xsm, '... release is aborted if dirty' )
+              or diag 'got log messages: ', explain $tzil->log_messages;
+        }
+
 #        note('release is not aborted if workspace is not dirty');
 #        {
 #            my $tzil = Builder->from_config(
