@@ -768,7 +768,7 @@ jobs:
           PERL_USE_UNSAFE_INC: 0
 
       - name: prove -vl t
-        run: prove -vl t/basic.t
+        run: prove -vl t/no_porcelain.t
         working-directory: ${{ github.event.repository.name }}
         env:
           AUTOMATED_TESTING: 1
@@ -782,7 +782,7 @@ jobs:
           PERL_USE_UNSAFE_INC: 0
 
       - name: prove -vl t
-        run: prove -vl t/no_porcelain.t
+        run: prove -vl t/basic.t
         working-directory: ${{ github.event.repository.name }}
         env:
           AUTOMATED_TESTING: 1
