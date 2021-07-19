@@ -12,6 +12,8 @@ use Test::MockModule;
 use Test::More 0.88;
 use Test::TempDir::Tiny;
 
+use lib path(__FILE__)->parent->child('lib')->stringify;
+
 main();
 
 sub main {
@@ -44,10 +46,12 @@ sub main {
                 {
                     add_files => {
                         'source/dist.ini' => simple_ini(
+                            '=Local::CreateFakeGitWorkspace',
                             [
                                 'Git::Checkout',
                                 {
                                     repo => $repo_path->stringify(),
+                                    dir  => 'ws',
                                 },
                             ],
                         ),
@@ -57,7 +61,6 @@ sub main {
         };
 
         like( $exception, qr{ \Q[Git::Checkout] Your 'git' is to old\E }xsm, q{throws an exception if 'git status --porcelain' is not supported} );
-
     }
 
     done_testing;

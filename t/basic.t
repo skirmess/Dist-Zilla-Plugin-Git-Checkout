@@ -36,7 +36,13 @@ sub main {
 
   SKIP:
     {
-        skip 'Cannot find Git in PATH', 1 if !Git::Wrapper->has_git_in_path();
+        skip 'Cannot find Git in PATH', 1 if !Git::Wrapper->has_git_in_path;
+
+        {
+            my $git = Git::Wrapper->new( tempdir() );
+            $git->init;
+            skip q{Your Git does not support 'git status --porcelain'}, 1 if !$git->supports_status_porcelain;
+        }
 
         note('create Git test repository');
         my $repo_path = path( tempdir() )->child('my_repo.git')->absolute;
