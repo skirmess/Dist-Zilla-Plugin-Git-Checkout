@@ -565,15 +565,15 @@ sub main {
                                     checkout => 'my-tag',
                                 },
                             ],
-#                            [
-#                                '=Local::UpdateRemote',
-#                                {
-#                                    repo => $repo_path->stringify(),
-#                                },
-#                            ],
-#
-#                            # branch master, 3 commits, A ->  7
-#                            # branch dev,    3 commits, A -> 11, B -> 13, C -> 1087
+                            [
+                                '=Local::UpdateRemote',
+                                {
+                                    repo => $repo_path->stringify(),
+                                },
+                            ],
+
+                            # branch master, 3 commits, A ->  7
+                            # branch dev,    3 commits, A -> 11, B -> 13, C -> 1087
 #                            [
 #                                'Git::Checkout',
 #                                'branchUpdate',

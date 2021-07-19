@@ -546,16 +546,16 @@ sub main {
 
             my $tzil = Builder->from_config(
                 { dist_root => tempdir() },
-#                {
-#                    add_files => {
-#                        'source/dist.ini' => simple_ini(
-#                            [
-#                                'Git::Checkout',
-#                                'branchCheckout',
-#                                {
-#                                    repo => $repo_path->stringify(),
-#                                },
-#                            ],
+                {
+                    add_files => {
+                        'source/dist.ini' => simple_ini(
+                            [
+                                'Git::Checkout',
+                                'branchCheckout',
+                                {
+                                    repo => $repo_path->stringify(),
+                                },
+                            ],
 #                            [
 #                                'Git::Checkout',
 #                                'tagCheckout',
@@ -590,9 +590,9 @@ sub main {
 #                                    checkout => 'my-tag',
 #                                },
 #                            ],
-#                        ),
-#                    },
-#                },
+                        ),
+                    },
+                },
             );
 #
 #            note(q{checkout and update branch 'master'});
