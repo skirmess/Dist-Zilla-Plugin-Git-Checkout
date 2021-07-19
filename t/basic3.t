@@ -544,56 +544,56 @@ sub main {
             my $git = Git::Wrapper->new( $repo_path->stringify );
             $git->tag('my-tag');
 
-            my $tzil = Builder->from_config(
-                { dist_root => tempdir() },
-                {
-                    add_files => {
-                        'source/dist.ini' => simple_ini(
-                            [
-                                'Git::Checkout',
-                                'branchCheckout',
-                                {
-                                    repo => $repo_path->stringify(),
-                                },
-                            ],
-                            [
-                                'Git::Checkout',
-                                'tagCheckout',
-                                {
-                                    repo     => $repo_path->stringify(),
-                                    dir      => 'my_tag',
-                                    checkout => 'my-tag',
-                                },
-                            ],
-                            [
-                                '=Local::UpdateRemote',
-                                {
-                                    repo => $repo_path->stringify(),
-                                },
-                            ],
-
-                            # branch master, 3 commits, A ->  7
-                            # branch dev,    3 commits, A -> 11, B -> 13, C -> 1087
-                            [
-                                'Git::Checkout',
-                                'branchUpdate',
-                                {
-                                    repo => $repo_path->stringify(),
-                                },
-                            ],
-                            [
-                                'Git::Checkout',
-                                'tagUpdate',
-                                {
-                                    repo     => $repo_path->stringify(),
-                                    dir      => 'my_tag',
-                                    checkout => 'my-tag',
-                                },
-                            ],
-                        ),
-                    },
-                },
-            );
+#            my $tzil = Builder->from_config(
+#                { dist_root => tempdir() },
+#                {
+#                    add_files => {
+#                        'source/dist.ini' => simple_ini(
+#                            [
+#                                'Git::Checkout',
+#                                'branchCheckout',
+#                                {
+#                                    repo => $repo_path->stringify(),
+#                                },
+#                            ],
+#                            [
+#                                'Git::Checkout',
+#                                'tagCheckout',
+#                                {
+#                                    repo     => $repo_path->stringify(),
+#                                    dir      => 'my_tag',
+#                                    checkout => 'my-tag',
+#                                },
+#                            ],
+#                            [
+#                                '=Local::UpdateRemote',
+#                                {
+#                                    repo => $repo_path->stringify(),
+#                                },
+#                            ],
+#
+#                            # branch master, 3 commits, A ->  7
+#                            # branch dev,    3 commits, A -> 11, B -> 13, C -> 1087
+#                            [
+#                                'Git::Checkout',
+#                                'branchUpdate',
+#                                {
+#                                    repo => $repo_path->stringify(),
+#                                },
+#                            ],
+#                            [
+#                                'Git::Checkout',
+#                                'tagUpdate',
+#                                {
+#                                    repo     => $repo_path->stringify(),
+#                                    dir      => 'my_tag',
+#                                    checkout => 'my-tag',
+#                                },
+#                            ],
+#                        ),
+#                    },
+#                },
+#            );
 
             note(q{checkout and update branch 'master'});
             {
@@ -642,7 +642,6 @@ sub main {
             }
 
         }
-
     }
 
     done_testing;
