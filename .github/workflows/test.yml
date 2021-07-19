@@ -788,6 +788,34 @@ jobs:
           AUTOMATED_TESTING: 1
           PERL_USE_UNSAFE_INC: 0
 
+      - name: prove -vl t
+        run: prove -vl t/basic1.t
+        working-directory: ${{ github.event.repository.name }}
+        env:
+          AUTOMATED_TESTING: 1
+          PERL_USE_UNSAFE_INC: 0
+
+      - name: prove -vl t
+        run: prove -vl t/basic2.t
+        working-directory: ${{ github.event.repository.name }}
+        env:
+          AUTOMATED_TESTING: 1
+          PERL_USE_UNSAFE_INC: 0
+
+      - name: prove -vl t
+        run: prove -vl t/basic3.t
+        working-directory: ${{ github.event.repository.name }}
+        env:
+          AUTOMATED_TESTING: 1
+          PERL_USE_UNSAFE_INC: 0
+
+      - name: prove -vl t
+        run: prove -vl t/basic4.t
+        working-directory: ${{ github.event.repository.name }}
+        env:
+          AUTOMATED_TESTING: 1
+          PERL_USE_UNSAFE_INC: 0
+
       - name: make test
         run: ${{ steps.make.outputs.bin }} test
         working-directory: ${{ github.event.repository.name }}

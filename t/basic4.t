@@ -132,105 +132,105 @@ sub main {
                     },
                 },
             );
-#
-#            note('default');
-#            {
-#                my $workdir = path( $tzil->root )->child('my_repo');
-#                ok( $workdir->is_dir(),                'workspace is checked out' );
-#                ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
-#                ok( -f $workdir->child('A'),           '... with the correct file ...' );
-#                ok( !-e $workdir->child('B'),          '... only' );
-#                is( $workdir->child('A')->slurp, '7', '... with the correct content' );
-#
-#                my $git    = Git::Wrapper->new( $workdir->stringify );
-#                my @config = $git->config('-l');
-#                is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
-#
-#                is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
-#                  or diag 'got log messages: ', explain $tzil->log_messages;
-#                is( ( scalar grep { $_ eq "[Git::Checkout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-#                  or diag 'got log messages: ', explain $tzil->log_messages;
-#            }
-#
-#            note('with dir');
-#            {
-#                my $workdir = path( $tzil->root )->child('my_repo2');
-#                ok( $workdir->is_dir(),                'workspace is checked out' );
-#                ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
-#                ok( -f $workdir->child('A'),           '... with the correct file' );
-#                ok( !-e $workdir->child('B'),          '... only' );
-#                is( $workdir->child('A')->slurp, '7', '... with the correct content' );
-#
-#                my $git    = Git::Wrapper->new( $workdir->stringify );
-#                my @config = $git->config('-l');
-#                is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
-#
-#                is( ( scalar grep { $_ eq "[secondCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
-#                  or diag 'got log messages: ', explain $tzil->log_messages;
-#                is( ( scalar grep { $_ eq "[secondCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-#                  or diag 'got log messages: ', explain $tzil->log_messages;
-#            }
-#
-#            note('with dir and push_url');
-#            {
-#                my $workdir = path( $tzil->root )->child('my_repo3');
-#                ok( $workdir->is_dir(),                'workspace is checked out' );
-#                ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
-#                ok( -f $workdir->child('A'),           '... with the correct file' );
-#                ok( !-e $workdir->child('B'),          '... only' );
-#                is( $workdir->child('A')->slurp, '7', '... with the correct content' );
-#
-#                my $git    = Git::Wrapper->new( $workdir->stringify );
-#                my @config = $git->config('-l');
-#                is( scalar grep( { m{ ^ \Qremote.origin.pushurl=http://example.com/my_repo.git\E $ }xsm } @config ), 1, '... correct push url is defined' );
-#
-#                is( ( scalar grep { $_ eq "[thirdCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
-#                  or diag 'got log messages: ', explain $tzil->log_messages;
-#                is( ( scalar grep { $_ eq "[thirdCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-#                  or diag 'got log messages: ', explain $tzil->log_messages;
-#            }
-#
-#            note('with dir, and checkout');
-#            {
-#                my $workdir = path( $tzil->root )->child('my_repo_dev');
-#                ok( $workdir->is_dir(),                'workspace is checked out' );
-#                ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
-#                ok( -f $workdir->child('A'),           '... with the correct file (A)' )
-#                  and is( $workdir->child('A')->slurp, '11', '... with the correct content' );
-#                ok( -f $workdir->child('B'), '... with the correct file (B)' )
-#                  and is( $workdir->child('B')->slurp, '13', '... with the correct content' );
-#
-#                my $git    = Git::Wrapper->new( $workdir->stringify );
-#                my @config = $git->config('-l');
-#                is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
-#
-#                is( ( scalar grep { $_ eq "[devBranchCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
-#                  or diag 'got log messages: ', explain $tzil->log_messages;
-#                is( ( scalar grep { $_ eq "[devBranchCheckout] Checking out dev in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-#                  or diag 'got log messages: ', explain $tzil->log_messages;
-#            }
-#
-#            note('with dir, checkout, and push_url');
-#            {
-#                my $workdir = path( $tzil->root )->child('my_repo_dev2');
-#                ok( $workdir->is_dir(),                'workspace is checked out' );
-#                ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
-#                ok( -f $workdir->child('A'),           '... with the correct file (A)' )
-#                  and is( $workdir->child('A')->slurp, '11', '... with the correct content' );
-#                ok( -f $workdir->child('B'), '... with the correct file (B)' )
-#                  and is( $workdir->child('B')->slurp, '13', '... with the correct content' );
-#
-#                my $git    = Git::Wrapper->new( $workdir->stringify );
-#                my @config = $git->config('-l');
-#                is( scalar grep( { m{ ^ \Qremote.origin.pushurl=http://example.com/my_dev_repo.git\E $ }xsm } @config ), 1, '... correct push url is defined' );
-#
-#                is( ( scalar grep { $_ eq "[devBranchCheckout2] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
-#                  or diag 'got log messages: ', explain $tzil->log_messages;
-#                is( ( scalar grep { $_ eq "[devBranchCheckout2] Checking out dev in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-#                  or diag 'got log messages: ', explain $tzil->log_messages;
-#            }
-#        }
-#
+
+            note('default');
+            {
+                my $workdir = path( $tzil->root )->child('my_repo');
+                ok( $workdir->is_dir(),                'workspace is checked out' );
+                ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
+                ok( -f $workdir->child('A'),           '... with the correct file ...' );
+                ok( !-e $workdir->child('B'),          '... only' );
+                is( $workdir->child('A')->slurp, '7', '... with the correct content' );
+
+                my $git    = Git::Wrapper->new( $workdir->stringify );
+                my @config = $git->config('-l');
+                is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
+
+                is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+                is( ( scalar grep { $_ eq "[Git::Checkout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+            }
+
+            note('with dir');
+            {
+                my $workdir = path( $tzil->root )->child('my_repo2');
+                ok( $workdir->is_dir(),                'workspace is checked out' );
+                ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
+                ok( -f $workdir->child('A'),           '... with the correct file' );
+                ok( !-e $workdir->child('B'),          '... only' );
+                is( $workdir->child('A')->slurp, '7', '... with the correct content' );
+
+                my $git    = Git::Wrapper->new( $workdir->stringify );
+                my @config = $git->config('-l');
+                is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
+
+                is( ( scalar grep { $_ eq "[secondCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+                is( ( scalar grep { $_ eq "[secondCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+            }
+
+            note('with dir and push_url');
+            {
+                my $workdir = path( $tzil->root )->child('my_repo3');
+                ok( $workdir->is_dir(),                'workspace is checked out' );
+                ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
+                ok( -f $workdir->child('A'),           '... with the correct file' );
+                ok( !-e $workdir->child('B'),          '... only' );
+                is( $workdir->child('A')->slurp, '7', '... with the correct content' );
+
+                my $git    = Git::Wrapper->new( $workdir->stringify );
+                my @config = $git->config('-l');
+                is( scalar grep( { m{ ^ \Qremote.origin.pushurl=http://example.com/my_repo.git\E $ }xsm } @config ), 1, '... correct push url is defined' );
+
+                is( ( scalar grep { $_ eq "[thirdCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+                is( ( scalar grep { $_ eq "[thirdCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+            }
+
+            note('with dir, and checkout');
+            {
+                my $workdir = path( $tzil->root )->child('my_repo_dev');
+                ok( $workdir->is_dir(),                'workspace is checked out' );
+                ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
+                ok( -f $workdir->child('A'),           '... with the correct file (A)' )
+                  and is( $workdir->child('A')->slurp, '11', '... with the correct content' );
+                ok( -f $workdir->child('B'), '... with the correct file (B)' )
+                  and is( $workdir->child('B')->slurp, '13', '... with the correct content' );
+
+                my $git    = Git::Wrapper->new( $workdir->stringify );
+                my @config = $git->config('-l');
+                is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
+
+                is( ( scalar grep { $_ eq "[devBranchCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+                is( ( scalar grep { $_ eq "[devBranchCheckout] Checking out dev in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+            }
+
+            note('with dir, checkout, and push_url');
+            {
+                my $workdir = path( $tzil->root )->child('my_repo_dev2');
+                ok( $workdir->is_dir(),                'workspace is checked out' );
+                ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
+                ok( -f $workdir->child('A'),           '... with the correct file (A)' )
+                  and is( $workdir->child('A')->slurp, '11', '... with the correct content' );
+                ok( -f $workdir->child('B'), '... with the correct file (B)' )
+                  and is( $workdir->child('B')->slurp, '13', '... with the correct content' );
+
+                my $git    = Git::Wrapper->new( $workdir->stringify );
+                my @config = $git->config('-l');
+                is( scalar grep( { m{ ^ \Qremote.origin.pushurl=http://example.com/my_dev_repo.git\E $ }xsm } @config ), 1, '... correct push url is defined' );
+
+                is( ( scalar grep { $_ eq "[devBranchCheckout2] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+                is( ( scalar grep { $_ eq "[devBranchCheckout2] Checking out dev in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+            }
+        }
+
 #        note('dir exists already');
 #        {
 #            my $exception = exception {
