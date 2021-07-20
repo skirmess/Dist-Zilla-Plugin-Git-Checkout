@@ -136,9 +136,9 @@ sub _checkout {
     # We don't know what the default branch is. It's easier to just check it out again.
     print STDERR "Line: ", __LINE__, "\n";
     $self->log("Checking out $checkout in $dir");
-    print STDERR "Checking out $checkout in $dir";
+    print STDERR "Checking out $checkout in $dir\n";
     {
-        print `cd $dir && git tag`;
+        print STDERR `cd $dir && git tag`, "\n";
         #print `cd $dir && git status`;
         #print `cd $dir && git checkout $checkout`;
     }
