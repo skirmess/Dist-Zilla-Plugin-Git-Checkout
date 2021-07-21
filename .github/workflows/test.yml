@@ -30,34 +30,6 @@ jobs:
         run: perl -e 'print qq{perl = $^X\n::set-output name=bin::$^X\n}'
         id: perl
 
-      - name: perl -V
-        run: ${{ steps.perl.outputs.bin }} -V
-
-      - name: find make
-        run: |
-          $make = ${{ steps.perl.outputs.bin }} -MConfig -e 'print $Config{make}'
-          $make = (Get-Command $make | select -first 1).path
-          echo "make = $make"
-          echo "::set-output name=bin::$make"
-        id: make
-
-      - name: find home
-        run: |
-          $homedir = perl -e 'print $ENV{HOME} || eval { require File::HomeDir; File::HomeDir->my_home } || join(q{}, @ENV{qw(HOMEDRIVE HOMEPATH)})'
-          echo "home = $homedir"
-          echo "::set-output name=path::$homedir"
-        id: home
-
-      - name: gcc --version
-        run: |
-          (Get-Command gcc | select -first 1).path
-          gcc --version
-
-      - name: g++ --version
-        run: |
-          (Get-Command g++ | select -first 1).path
-          g++ --version
-
       - name: install cpanm
         run: |
           Invoke-WebRequest https://cpanmin.us/ -OutFile cpanm.pl
@@ -98,7 +70,7 @@ jobs:
           PERL_USE_UNSAFE_INC: 0
 
       - name: make
-        run: ${{ steps.make.outputs.bin }}
+        run: make
         working-directory: ${{ github.event.repository.name }}
         env:
           PERL_USE_UNSAFE_INC: 0
