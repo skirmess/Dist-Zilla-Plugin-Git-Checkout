@@ -23,6 +23,8 @@ jobs:
           perl-version: 5.32.1
           distribution: strawberry
 
+      - run: which cpanm
+
       - name: install cpanm
         run: |
           Invoke-WebRequest https://cpanmin.us/ -OutFile cpanm.pl
