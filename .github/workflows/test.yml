@@ -23,26 +23,11 @@ jobs:
           perl-version: 5.32.1
           distribution: strawberry
 
-      - run: which cpanm
-
-      - name: install cpanm
-        run: |
-          Invoke-WebRequest https://cpanmin.us/ -OutFile cpanm.pl
-          perl cpanm.pl --reinstall App::cpanminus
-          erase cpanm.pl
-
-      - name: installsitebin
-        run: |
-          $installsitebin = perl -MConfig -e 'print $Config{installsitebin};'
-          echo "installsitebin = $installsitebin"
-          echo "::set-output name=path::$installsitebin"
-        id: installsitebin
 
       - name: cpanm --installdeps --notest .
         run: |
           mv cpanfile .cpanfile.disabled
-          perl ${{ steps.installsitebin.outputs.path }}\cpanm --verbose --installdeps --notest .
-          mv .cpanfile.disabled cpanfile
+          cpanm --verbose --installdeps --notest .
         working-directory: ${{ github.event.repository.name }}
         env:
           AUTOMATED_TESTING: 1
