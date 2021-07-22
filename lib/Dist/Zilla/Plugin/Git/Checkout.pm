@@ -77,7 +77,7 @@ sub _checkout {
     print STDERR "Line: ", __LINE__, "\n";
 
     my $git = Git::Wrapper->new( $dir->stringify );
-    print STDERR "Line: ", __LINE__, "\n";
+    print STDERR "Line: ", __LINE__, "dir = $dir\n";
 
     if ( -d $dir ) {
     print STDERR "Line: ", __LINE__, "\n";
