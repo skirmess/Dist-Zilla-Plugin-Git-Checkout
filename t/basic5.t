@@ -66,29 +66,29 @@ sub main {
                                     repo => $repo_path->stringify(),
                                 },
                             ],
-                            [
-                                'Git::Checkout',
-                                'tagCheckout',
-                                {
-                                    repo     => $repo_path->stringify(),
-                                    dir      => 'my_tag',
-                                    checkout => 'my-tag',
-                                },
-                            ],
-                            [
-                                '=Local::UpdateRemote',
-                                {
-                                    repo => $repo_path->stringify(),
-                                },
-                            ],
-
-                            [
-                                'Git::Checkout',
-                                'branchUpdate',
-                                {
-                                    repo => $repo_path->stringify(),
-                                },
-                            ],
+#                            [
+#                                'Git::Checkout',
+#                                'tagCheckout',
+#                                {
+#                                    repo     => $repo_path->stringify(),
+#                                    dir      => 'my_tag',
+#                                    checkout => 'my-tag',
+#                                },
+#                            ],
+#                            [
+#                                '=Local::UpdateRemote',
+#                                {
+#                                    repo => $repo_path->stringify(),
+#                                },
+#                            ],
+#
+#                            [
+#                                'Git::Checkout',
+#                                'branchUpdate',
+#                                {
+#                                    repo => $repo_path->stringify(),
+#                                },
+#                            ],
                         ),
                     },
                 },
