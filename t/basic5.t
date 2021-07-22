@@ -59,13 +59,13 @@ sub main {
                 {
                     add_files => {
                         'source/dist.ini' => simple_ini(
-                            [
-                                'Git::Checkout',
-                                'branchCheckout',
-                                {
-                                    repo => $repo_path->stringify(),
-                                },
-                            ],
+#                            [
+#                                'Git::Checkout',
+#                                'branchCheckout',
+#                                {
+#                                    repo => $repo_path->stringify(),
+#                                },
+#                            ],
                             [
                                 'Git::Checkout',
                                 'tagCheckout',
