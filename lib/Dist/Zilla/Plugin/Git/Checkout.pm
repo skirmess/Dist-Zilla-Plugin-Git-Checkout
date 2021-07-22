@@ -143,7 +143,7 @@ sub _checkout {
         #print `cd $dir && git checkout $checkout`;
     }
     print STDERR "Line: ", __LINE__, "\n";
-    print `ls -la $dir`;
+    print "-->", `ls -la $dir`, "<--\n";
     $git->checkout($checkout);
     print STDERR "Line: ", __LINE__, "\n";
 
