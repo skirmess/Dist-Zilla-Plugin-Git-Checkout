@@ -51,3 +51,34 @@ jobs:
         env:
           AUTOMATED_TESTING: 1
           PERL_USE_UNSAFE_INC: 0
+
+  strawberry3:
+    runs-on: windows-latest
+
+    env:
+      TAR_OPTIONS: --warning=no-unknown-keyword
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: ${{ github.event.repository.name }}
+
+      - uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: 5.32.1
+          distribution: strawberry
+
+      - name: cpanm --installdeps --notest .
+        run: |
+          mv cpanfile .cpanfile.disabled
+          cpanm --verbose --installdeps --notest .
+        working-directory: ${{ github.event.repository.name }}
+        env:
+          AUTOMATED_TESTING: 1
+
+      - name: prove -vl t
+        run: prove -vl t/basic5.t
+        working-directory: ${{ github.event.repository.name }}
+        env:
+          AUTOMATED_TESTING: 1
+          PERL_USE_UNSAFE_INC: 0
