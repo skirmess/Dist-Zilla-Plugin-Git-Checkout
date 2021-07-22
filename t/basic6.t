@@ -57,15 +57,15 @@ sub main {
             my $ws = tempdir();
 
             print STDERR __LINE__;
-            my $git = Git::Wrapper->new( $ws );
+            my $git2 = Git::Wrapper->new( $ws );
             print STDERR __LINE__;
-            $git->clone( $repo_path->stringify(), $ws );
+            $git2->clone( $repo_path->stringify(), $ws );
             print STDERR __LINE__;
 
             print STDERR __LINE__;
-            my ($push_url) = eval { $git->config('remote.origin.pushurl'); };
+            my ($push_url) = eval { $git2->config('remote.origin.pushurl'); };
             print STDERR __LINE__;
-            $git->checkout('my-tag');
+            $git2->checkout('my-tag');
             print STDERR __LINE__;
 
 #            print STDERR "repo_path: $repo_path\n";
