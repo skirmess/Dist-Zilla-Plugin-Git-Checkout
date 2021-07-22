@@ -59,13 +59,6 @@ sub main {
                 {
                     add_files => {
                         'source/dist.ini' => simple_ini(
-#                            [
-#                                'Git::Checkout',
-#                                'branchCheckout',
-#                                {
-#                                    repo => $repo_path->stringify(),
-#                                },
-#                            ],
                             [
                                 'Git::Checkout',
                                 'tagCheckout',
@@ -75,20 +68,6 @@ sub main {
                                     checkout => 'my-tag',
                                 },
                             ],
-#                            [
-#                                '=Local::UpdateRemote',
-#                                {
-#                                    repo => $repo_path->stringify(),
-#                                },
-#                            ],
-#
-#                            [
-#                                'Git::Checkout',
-#                                'branchUpdate',
-#                                {
-#                                    repo => $repo_path->stringify(),
-#                                },
-#                            ],
                         ),
                     },
                 },
