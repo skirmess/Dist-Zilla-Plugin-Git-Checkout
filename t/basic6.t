@@ -54,28 +54,42 @@ sub main {
             my $git = Git::Wrapper->new( $repo_path->stringify );
             $git->tag('my-tag');
 
-            print STDERR "repo_path: $repo_path\n";
-            my $t = tempdir();
-            print STDERR "t: $t\n";
+            my $ws = tempdir();
 
-            my $tzil = Builder->from_config(
-                { dist_root => $t },
-                {
-                    add_files => {
-                        'source/dist.ini' => simple_ini(
-                            [
-                                'Git::Checkout',
-                                'tagCheckout',
-                                {
-                                    repo     => $repo_path->stringify(),
-                                    dir      => 'my_tag',
-                                    checkout => 'my-tag',
-                                },
-                            ],
-                        ),
-                    },
-                },
-            );
+            print STDERR __LINE__;
+            my $git = Git::Wrapper->new( $ws );
+            print STDERR __LINE__;
+            $git->clone( $repo_path->stringify(), $ws );
+            print STDERR __LINE__;
+
+            print STDERR __LINE__;
+            my ($push_url) = eval { $git->config('remote.origin.pushurl'); };
+            print STDERR __LINE__;
+            $git->checkout('my-tag');
+            print STDERR __LINE__;
+
+#            print STDERR "repo_path: $repo_path\n";
+#            my $t = tempdir();
+#            print STDERR "t: $t\n";
+#
+#            my $tzil = Builder->from_config(
+#                { dist_root => $t },
+#                {
+#                    add_files => {
+#                        'source/dist.ini' => simple_ini(
+#                            [
+#                                'Git::Checkout',
+#                                'tagCheckout',
+#                                {
+#                                    repo     => $repo_path->stringify(),
+#                                    dir      => 'my_tag',
+#                                    checkout => 'my-tag',
+#                                },
+#                            ],
+#                        ),
+#                    },
+#                },
+#            );
 
 
         }
