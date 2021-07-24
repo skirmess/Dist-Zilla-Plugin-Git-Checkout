@@ -66,6 +66,8 @@ sub before_release {
 sub _checkout {
     my ($self) = @_;
 
+    $self->log_fatal(q{No 'git' in PATH}) if !Git::Wrapper->has_git_in_path;
+
     my $dir      = path( $self->zilla->root )->child( path( $self->dir ) )->absolute;
     my $repo     = $self->repo;
     my $checkout = $self->checkout;
@@ -74,6 +76,8 @@ sub _checkout {
 
     if ( -d $dir ) {
         $self->log_fatal("Directory $dir exists but is not a Git repository") if !-d $dir->child('.git');
+
+        $self->log_fatal(q{Your 'git' is to old}) if !$git->supports_status_porcelain;
 
         my ($origin) = $git->config('remote.origin.url');
         $self->log_fatal("Directory $dir is not a Git repository for $repo") if $origin ne $repo;
