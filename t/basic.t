@@ -9,9 +9,13 @@ use Path::Tiny;
 use Test::DZil;
 use Test::Fatal;
 use Test::More 0.88;
-use Test::TempDir::Tiny;
 
-use lib path(__FILE__)->parent->child('lib')->stringify;
+use Cwd            ();
+use File::Basename ();
+use File::Spec     ();
+use lib File::Spec->catdir( File::Basename::dirname( Cwd::abs_path __FILE__ ), 'lib' );
+
+use Local::Test::TempDir qw(tempdir);
 
 main();
 

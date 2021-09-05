@@ -15,17 +15,22 @@ on configure => sub {
 };
 
 on test => sub {
+    requires 'Carp';
+    requires 'Cwd';
     requires 'Dist::Zilla::Role::Plugin';
+    requires 'Exporter', '5.57';
+    requires 'File::Basename';
+    requires 'File::Path';
+    requires 'File::Spec';
     requires 'Test::DZil';
     requires 'Test::Fatal';
     requires 'Test::MockModule';
     requires 'Test::More', '0.88';
-    requires 'Test::TempDir::Tiny';
     requires 'lib';
 };
 
 on develop => sub {
-    requires 'CPANPLUS';
+    requires 'CPAN';
     requires 'JSON::PP';
     requires 'Module::Info';
     requires 'Perl::Critic', '1.140';
@@ -147,10 +152,12 @@ on develop => sub {
 feature 'dzil', 'Dist::Zilla' => sub {
 on develop => sub {
         requires 'App::Prove';
+        requires 'CPAN::Meta::Prereqs';
         requires 'CPAN::Meta::Prereqs::Filter';
         requires 'CPAN::Meta::Requirements';
         requires 'Carp';
         requires 'Config::MVP', '2.200012';
+        requires 'Data::Dumper';
         requires 'Dist::Zilla';
         requires 'Dist::Zilla::File::InMemory';
         requires 'Dist::Zilla::File::OnDisk';
@@ -162,7 +169,9 @@ on develop => sub {
         requires 'Dist::Zilla::Plugin::CheckPrereqsIndexed';
         requires 'Dist::Zilla::Plugin::CheckSelfDependency';
         requires 'Dist::Zilla::Plugin::CheckStrictVersion';
-        requires 'Dist::Zilla::Plugin::Code::MetaProvider';
+        requires 'Dist::Zilla::Plugin::Code::AfterBuild';
+        requires 'Dist::Zilla::Plugin::Code::FileMunger', '0.007';
+        requires 'Dist::Zilla::Plugin::Code::PrereqSource';
         requires 'Dist::Zilla::Plugin::ConfirmRelease';
         requires 'Dist::Zilla::Plugin::ExecDir';
         requires 'Dist::Zilla::Plugin::FinderCode';
@@ -178,12 +187,11 @@ on develop => sub {
         requires 'Dist::Zilla::Plugin::Git::Tag';
         requires 'Dist::Zilla::Plugin::GithubMeta';
         requires 'Dist::Zilla::Plugin::License';
-        requires 'Dist::Zilla::Plugin::MakeMaker::Awesome';
+        requires 'Dist::Zilla::Plugin::MakeMaker::Awesome', '0.49';
         requires 'Dist::Zilla::Plugin::Manifest';
         requires 'Dist::Zilla::Plugin::ManifestSkip';
         requires 'Dist::Zilla::Plugin::MetaJSON';
         requires 'Dist::Zilla::Plugin::MetaNoIndex';
-        requires 'Dist::Zilla::Plugin::MetaProvides::Package';
         requires 'Dist::Zilla::Plugin::MetaYAML';
         requires 'Dist::Zilla::Plugin::NextRelease';
         requires 'Dist::Zilla::Plugin::PromptIfStale';
@@ -203,8 +211,6 @@ on develop => sub {
         requires 'Dist::Zilla::Role::FileFinderUser';
         requires 'Dist::Zilla::Role::FileGatherer';
         requires 'Dist::Zilla::Role::FileMunger';
-        requires 'Dist::Zilla::Role::PPI';
-        requires 'Dist::Zilla::Role::PluginBundle::Config::Slicer';
         requires 'Dist::Zilla::Role::PluginBundle::Easy';
         requires 'Dist::Zilla::Role::PrereqSource';
         requires 'Dist::Zilla::Role::TestRunner';
@@ -219,15 +225,18 @@ on develop => sub {
         requires 'File::pushd';
         requires 'List::Util';
         requires 'Module::CPANfile', '1.1004';
+        requires 'Module::CoreList', '2.77';
         requires 'Module::Metadata';
         requires 'Moose', '0.99';
         requires 'Moose::Role';
         requires 'Perl::MinimumVersion', '1.26';
-        requires 'Perl::PrereqScanner', '1.016';
+        requires 'Perl::Tidy';
         requires 'Safe::Isa';
         requires 'Scalar::Util';
+        requires 'YAML::Tiny';
         requires 'constant';
         requires 'namespace::autoclean', '0.09';
         requires 'perl', '5.010';
+        requires 'version', '0.77';
 };
 };
