@@ -4,45 +4,25 @@ use 5.006;
 use strict;
 use warnings;
 
-use Git::Wrapper;
+use Git::Repository;
 use Path::Tiny;
 use Test::DZil;
 use Test::Fatal;
 use Test::More 0.88;
 
-use Cwd            ();
-use File::Basename ();
-use File::Spec     ();
-use lib File::Spec->catdir( File::Basename::dirname( Cwd::abs_path __FILE__ ), 'lib' );
+use lib path(__FILE__)->absolute->parent->child('lib')->stringify;
 
 use Local::Test::TempDir qw(tempdir);
 
 main();
 
 sub main {
-
-    note('create Git test repository');
-    my $repo_path = path( tempdir() )->child('my_repo.git')->absolute;
-    mkdir $repo_path or die "Cannot create $repo_path";
-
-    {
-        my $git = Git::Wrapper->new( $repo_path->stringify );
-        $git->init;
-        $git->config( 'user.email', 'test@example.com' );
-        $git->config( 'user.name',  'Test' );
-
-        my $file_A = $repo_path->child('D');
-        $file_A->spew('5');
-        $git->add('D');
-        $git->commit( { message => 'initial commit' } );
-    }
-
     note('no git in PATH');
   SKIP:
     {
         local $ENV{PATH} = path( tempdir() )->absolute->stringify;
 
-        skip q{Cannot remove 'git' from PATH}, 1 if Git::Wrapper->has_git_in_path;
+        skip q{Cannot remove 'git' from PATH}, 1 if eval { Git::Repository->version };
 
         my $tzil;
         my $exception = exception {
@@ -54,7 +34,7 @@ sub main {
                             [
                                 'Git::Checkout',
                                 {
-                                    repo => $repo_path->stringify(),
+                                    repo => path(__FILE__)->absolute->parent(2)->child('corpus/test.bundle')->stringify,
                                 },
                             ],
                         ),

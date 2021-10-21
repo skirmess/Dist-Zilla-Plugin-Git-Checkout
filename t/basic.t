@@ -4,16 +4,13 @@ use 5.006;
 use strict;
 use warnings;
 
-use Git::Wrapper;
+use Git::Repository;
 use Path::Tiny;
 use Test::DZil;
 use Test::Fatal;
 use Test::More 0.88;
 
-use Cwd            ();
-use File::Basename ();
-use File::Spec     ();
-use lib File::Spec->catdir( File::Basename::dirname( Cwd::abs_path __FILE__ ), 'lib' );
+use lib path(__FILE__)->absolute->parent->child('lib')->stringify;
 
 use Local::Test::TempDir qw(tempdir);
 
@@ -40,47 +37,37 @@ sub main {
 
   SKIP:
     {
-        skip 'Cannot find Git in PATH', 1 if !Git::Wrapper->has_git_in_path;
-
-        {
-            my $git = Git::Wrapper->new( tempdir() );
-            $git->init;
-            skip q{Your Git does not support 'git status --porcelain'}, 1 if !$git->supports_status_porcelain;
-        }
+        skip 'Cannot find Git in PATH',    1 if !eval { Git::Repository->version };
+        skip 'Git must be at least 1.7.0', 1 if !Git::Repository->version_ge('1.7.0');
 
         note('create Git test repository');
-        my $repo_path = path( tempdir() )->child('my_repo.git')->absolute;
-        mkdir $repo_path or die "Cannot create $repo_path";
-
+        my $repo_path  = path( tempdir() )->child('my_repo.git')->absolute->stringify;
+        my $repo_path2 = path($repo_path)->parent->child('my_repo2.git')->stringify;
         {
-            my $git = Git::Wrapper->new( $repo_path->stringify );
-            $git->init;
-            $git->config( 'user.email', 'test@example.com' );
-            $git->config( 'user.name',  'Test' );
+            my $error;
+            {
+                local $@;
+                my $ok = eval {
 
-            my $file_A = $repo_path->child('A');
-            my $file_B = $repo_path->child('B');
-            $file_A->spew('5');
-            $git->add('A');
-            $git->commit( { message => 'initial commit' } );
+                    # branch master, 2 commits, A ->  7
+                    # branch dev,    3 commits, A -> 11, B -> 13
+                    Git::Repository->run( 'clone', '--bare', path(__FILE__)->absolute->parent(2)->child('corpus/test.bundle')->stringify(), $repo_path, { quiet => 1, fatal => ['!0'] } );
+                    my $git = Git::Repository->new( work_tree => $repo_path );
+                    $git->run( 'remote', 'remove', 'origin', { quiet => 1, fatal => ['!0'] } );
 
-            $file_A->spew('7');
-            $git->add('A');
-            $git->commit( { message => 'second commit' } );
+                    # branch master, 1 commit, C -> 419
+                    Git::Repository->run( 'clone', '--bare', path(__FILE__)->absolute->parent(2)->child('corpus/test2.bundle')->stringify(), $repo_path2, { quiet => 1, fatal => ['!0'] } );
+                    $git = Git::Repository->new( work_tree => $repo_path2 );
+                    $git->run( 'remote', 'remove', 'origin', { quiet => 1, fatal => ['!0'] } );
 
-            $git->branch('dev');
-            $git->checkout('dev');
+                    1;
+                };
 
-            $file_A->spew('11');
-            $git->add('A');
-            $file_B->spew('13');
-            $git->add('B');
-            $git->commit( { message => 'commit on dev branch' } );
-
-            $git->checkout('master');
-
-            # branch master, 2 commits, A ->  7
-            # branch dev,    3 commits, A -> 11, B -> 13
+                if ( !$ok ) {
+                    $error = $@;
+                }
+            }
+            skip "Cannot setup test repository: $error", 1 if defined $error;
         }
 
         note('fresh checkouts');
@@ -93,14 +80,14 @@ sub main {
                             [
                                 'Git::Checkout',
                                 {
-                                    repo => $repo_path->stringify(),
+                                    repo => $repo_path,
                                 },
                             ],
                             [
                                 'Git::Checkout',
                                 'secondCheckout',
                                 {
-                                    repo => $repo_path->stringify(),
+                                    repo => $repo_path,
                                     dir  => 'my_repo2',
                                 },
                             ],
@@ -108,7 +95,7 @@ sub main {
                                 'Git::Checkout',
                                 'thirdCheckout',
                                 {
-                                    repo     => $repo_path->stringify(),
+                                    repo     => $repo_path,
                                     dir      => 'my_repo3',
                                     push_url => 'http://example.com/my_repo.git',
                                 },
@@ -117,7 +104,7 @@ sub main {
                                 'Git::Checkout',
                                 'devBranchCheckout',
                                 {
-                                    repo     => $repo_path->stringify(),
+                                    repo     => $repo_path,
                                     dir      => 'my_repo_dev',
                                     checkout => 'dev',
                                 },
@@ -126,7 +113,7 @@ sub main {
                                 'Git::Checkout',
                                 'devBranchCheckout2',
                                 {
-                                    repo     => $repo_path->stringify(),
+                                    repo     => $repo_path,
                                     dir      => 'my_repo_dev2',
                                     checkout => 'dev',
                                     push_url => 'http://example.com/my_dev_repo.git',
@@ -146,8 +133,8 @@ sub main {
                 ok( !-e $workdir->child('B'),          '... only' );
                 is( $workdir->child('A')->slurp, '7', '... with the correct content' );
 
-                my $git    = Git::Wrapper->new( $workdir->stringify );
-                my @config = $git->config('-l');
+                my $git    = Git::Repository->new( work_tree => $workdir->stringify );
+                my @config = $git->run( 'config', '-l' );
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
                 is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -165,8 +152,8 @@ sub main {
                 ok( !-e $workdir->child('B'),          '... only' );
                 is( $workdir->child('A')->slurp, '7', '... with the correct content' );
 
-                my $git    = Git::Wrapper->new( $workdir->stringify );
-                my @config = $git->config('-l');
+                my $git    = Git::Repository->new( work_tree => $workdir->stringify );
+                my @config = $git->run( 'config', '-l' );
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
                 is( ( scalar grep { $_ eq "[secondCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -184,8 +171,8 @@ sub main {
                 ok( !-e $workdir->child('B'),          '... only' );
                 is( $workdir->child('A')->slurp, '7', '... with the correct content' );
 
-                my $git    = Git::Wrapper->new( $workdir->stringify );
-                my @config = $git->config('-l');
+                my $git    = Git::Repository->new( work_tree => $workdir->stringify );
+                my @config = $git->run( 'config', '-l' );
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=http://example.com/my_repo.git\E $ }xsm } @config ), 1, '... correct push url is defined' );
 
                 is( ( scalar grep { $_ eq "[thirdCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -204,8 +191,8 @@ sub main {
                 ok( -f $workdir->child('B'), '... with the correct file (B)' )
                   and is( $workdir->child('B')->slurp, '13', '... with the correct content' );
 
-                my $git    = Git::Wrapper->new( $workdir->stringify );
-                my @config = $git->config('-l');
+                my $git    = Git::Repository->new( work_tree => $workdir->stringify );
+                my @config = $git->run( 'config', '-l' );
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
                 is( ( scalar grep { $_ eq "[devBranchCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -224,8 +211,8 @@ sub main {
                 ok( -f $workdir->child('B'), '... with the correct file (B)' )
                   and is( $workdir->child('B')->slurp, '13', '... with the correct content' );
 
-                my $git    = Git::Wrapper->new( $workdir->stringify );
-                my @config = $git->config('-l');
+                my $git    = Git::Repository->new( work_tree => $workdir->stringify );
+                my @config = $git->run( 'config', '-l' );
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=http://example.com/my_dev_repo.git\E $ }xsm } @config ), 1, '... correct push url is defined' );
 
                 is( ( scalar grep { $_ eq "[devBranchCheckout2] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -247,7 +234,7 @@ sub main {
                                 [
                                     'Git::Checkout',
                                     {
-                                        repo => $repo_path->stringify(),
+                                        repo => $repo_path,
                                         dir  => 'ws',
                                     },
                                 ],
@@ -262,19 +249,6 @@ sub main {
 
         note('dir exists already but is not workspace for the correct repository');
         {
-            my $repo_path2 = path( tempdir() )->child('my_repo2.git')->absolute;
-            mkdir $repo_path2 or die "Cannot create $repo_path2";
-
-            my $git = Git::Wrapper->new( $repo_path2->stringify );
-            $git->init;
-            $git->config( 'user.email', 'test@example.com' );
-            $git->config( 'user.name',  'Test' );
-
-            my $file_C = $repo_path2->child('C');
-            $file_C->spew('419');
-            $git->add('C');
-            $git->commit( { message => 'initial commit' } );
-
             my $exception = exception {
                 Builder->from_config(
                     { dist_root => tempdir() },
@@ -285,14 +259,14 @@ sub main {
                                     'Git::Checkout',
                                     'wrongRepoCheckout',
                                     {
-                                        repo => $repo_path2->stringify(),
+                                        repo => $repo_path2,
                                         dir  => 'ws',
                                     },
                                 ],
                                 [
                                     'Git::Checkout',
                                     {
-                                        repo => $repo_path->stringify(),
+                                        repo => $repo_path,
                                         dir  => 'ws',
                                     },
                                 ],
@@ -315,7 +289,7 @@ sub main {
                             [
                                 'Git::Checkout',
                                 {
-                                    repo => $repo_path->stringify(),
+                                    repo => $repo_path,
                                     dir  => 'ws',
                                 },
                             ],
@@ -324,7 +298,7 @@ sub main {
                                 'Git::Checkout',
                                 'secondCheckout',
                                 {
-                                    repo => $repo_path->stringify(),
+                                    repo => $repo_path,
                                     dir  => 'ws',
                                 },
                             ],
@@ -355,7 +329,7 @@ sub main {
                             [
                                 'Git::Checkout',
                                 {
-                                    repo     => $repo_path->stringify(),
+                                    repo     => $repo_path,
                                     dir      => 'ws',
                                     checkout => 'dev',
                                 },
@@ -364,7 +338,7 @@ sub main {
                                 'Git::Checkout',
                                 'secondCheckout',
                                 {
-                                    repo => $repo_path->stringify(),
+                                    repo => $repo_path,
                                     dir  => 'ws',
                                 },
                             ],
@@ -400,7 +374,7 @@ sub main {
                             [
                                 'Git::Checkout',
                                 {
-                                    repo     => $repo_path->stringify(),
+                                    repo     => $repo_path,
                                     dir      => 'ws',
                                     push_url => 'http://example.com/my_repo.git',
                                 },
@@ -409,7 +383,7 @@ sub main {
                                 'Git::Checkout',
                                 'secondCheckout',
                                 {
-                                    repo => $repo_path->stringify(),
+                                    repo => $repo_path,
                                     dir  => 'ws',
                                 },
                             ],
@@ -424,8 +398,8 @@ sub main {
             ok( -f $workdir->child('A'),           '... with the correct file' )
               and is( $workdir->child('A')->slurp, '7', '... with the correct (dirty) content' );
 
-            my $git    = Git::Wrapper->new( $workdir->stringify );
-            my @config = $git->config('-l');
+            my $git    = Git::Repository->new( work_tree => $workdir->stringify );
+            my @config = $git->run( 'config', '-l' );
             is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
             is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -450,7 +424,7 @@ sub main {
                             [
                                 'Git::Checkout',
                                 {
-                                    repo => $repo_path->stringify(),
+                                    repo => $repo_path,
                                     dir  => 'ws',
                                 },
                             ],
@@ -459,7 +433,7 @@ sub main {
                                 'Git::Checkout',
                                 'secondCheckout',
                                 {
-                                    repo => $repo_path->stringify(),
+                                    repo => $repo_path,
                                     dir  => 'ws',
                                 },
                             ],
@@ -474,8 +448,8 @@ sub main {
             ok( -f $workdir->child('A'),           '... with the correct file' )
               and is( $workdir->child('A')->slurp, '67', '... with the correct (dirty) content' );
 
-            my $git    = Git::Wrapper->new( $workdir->stringify );
-            my @config = $git->config('-l');
+            my $git    = Git::Repository->new( work_tree => $workdir->stringify );
+            my @config = $git->run( 'config', '-l' );
             is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
             is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -501,7 +475,7 @@ sub main {
                             [
                                 'Git::Checkout',
                                 {
-                                    repo => $repo_path->stringify(),
+                                    repo => $repo_path,
                                     dir  => 'ws',
                                 },
                             ],
@@ -509,7 +483,7 @@ sub main {
                                 'Git::Checkout',
                                 'secondCheckout',
                                 {
-                                    repo => $repo_path->stringify(),
+                                    repo => $repo_path,
                                     dir  => 'ws',
                                 },
                             ],
@@ -524,8 +498,8 @@ sub main {
             ok( -f $workdir->child('A'),           '... with the correct file' )
               and is( $workdir->child('A')->slurp, '7', '... with the correct (dirty) content' );
 
-            my $git    = Git::Wrapper->new( $workdir->stringify );
-            my @config = $git->config('-l');
+            my $git    = Git::Repository->new( work_tree => $workdir->stringify );
+            my @config = $git->run( 'config', '-l' );
             is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
             is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -545,9 +519,6 @@ sub main {
 
         note('checkout branch and tag');
         {
-            my $git = Git::Wrapper->new( $repo_path->stringify );
-            $git->tag('my-tag');
-
             my $tzil = Builder->from_config(
                 { dist_root => tempdir() },
                 {
@@ -557,14 +528,14 @@ sub main {
                                 'Git::Checkout',
                                 'branchCheckout',
                                 {
-                                    repo => $repo_path->stringify(),
+                                    repo => $repo_path,
                                 },
                             ],
                             [
                                 'Git::Checkout',
                                 'tagCheckout',
                                 {
-                                    repo     => $repo_path->stringify(),
+                                    repo     => $repo_path,
                                     dir      => 'my_tag',
                                     checkout => 'my-tag',
                                 },
@@ -572,7 +543,7 @@ sub main {
                             [
                                 '=Local::UpdateRemote',
                                 {
-                                    repo => $repo_path->stringify(),
+                                    repo => $repo_path,
                                 },
                             ],
 
@@ -582,14 +553,14 @@ sub main {
                                 'Git::Checkout',
                                 'branchUpdate',
                                 {
-                                    repo => $repo_path->stringify(),
+                                    repo => $repo_path,
                                 },
                             ],
                             [
                                 'Git::Checkout',
                                 'tagUpdate',
                                 {
-                                    repo     => $repo_path->stringify(),
+                                    repo     => $repo_path,
                                     dir      => 'my_tag',
                                     checkout => 'my-tag',
                                 },
@@ -598,6 +569,8 @@ sub main {
                     },
                 },
             );
+
+            skip "Test setup failed\n$Local::UpdateRemote::NOK", 1 if defined $Local::UpdateRemote::NOK;
 
             note(q{checkout and update branch 'master'});
             {
@@ -609,7 +582,8 @@ sub main {
                 ok( -f $workdir->child('C'),           '... updated file exists' )
                   and is( $workdir->child('C')->slurp, '1087', '... with the correct content' );
 
-                my @config = $git->config('-l');
+                my $git    = Git::Repository->new( work_tree => $workdir->stringify );
+                my @config = $git->run( 'config', '-l' );
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
                 is( ( scalar grep { $_ eq "[branchCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -632,7 +606,8 @@ sub main {
                 ok( -f $workdir->child('C'),           '... updated file exists' );
                 is( $workdir->child('C')->slurp, '1087', '... with the correct content' );
 
-                my @config = $git->config('-l');
+                my $git    = Git::Repository->new( work_tree => $workdir->stringify );
+                my @config = $git->run( 'config', '-l' );
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
                 is( ( scalar grep { $_ eq "[tagCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
