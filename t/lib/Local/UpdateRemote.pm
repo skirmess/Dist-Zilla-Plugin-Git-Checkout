@@ -35,7 +35,7 @@ around plugin_from_config => sub {
     $NOK = undef;
 
     {
-        local $@;
+        local $@;    ##no critic (Variables::RequireInitializationForLocalVars)
 
         my $ok = eval {
             my $workspace = path($repo_path)->absolute->parent->child('update_ws');

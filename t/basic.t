@@ -46,7 +46,7 @@ sub main {
         {
             my $error;
             {
-                local $@;
+                local $@;    ## no critic (Variables::RequireInitializationForLocalVars)
                 my $ok = eval {
 
                     # branch master, 2 commits, A ->  7
