@@ -1,5 +1,5 @@
 requires 'Dist::Zilla::Role::BeforeRelease';
-requires 'Git::Wrapper';
+requires 'Git::Repository';
 requires 'Moose';
 requires 'MooseX::Types::Moose';
 requires 'Path::Tiny';
@@ -19,10 +19,8 @@ on test => sub {
     requires 'Cwd';
     requires 'Dist::Zilla::Role::Plugin';
     requires 'Exporter', '5.57';
-    requires 'File::Basename';
     requires 'File::Path';
     requires 'File::Spec';
-    requires 'Git::Repository';
     requires 'Test::DZil';
     requires 'Test::Fatal';
     requires 'Test::MockModule';

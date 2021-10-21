@@ -4,17 +4,14 @@ use 5.006;
 use strict;
 use warnings;
 
-use Git::Wrapper;
+use Git::Repository;
 use Path::Tiny;
 use Test::DZil;
 use Test::Fatal;
 use Test::MockModule;
 use Test::More 0.88;
 
-use Cwd            ();
-use File::Basename ();
-use File::Spec     ();
-use lib File::Spec->catdir( File::Basename::dirname( Cwd::abs_path __FILE__ ), 'lib' );
+use lib path(__FILE__)->absolute->parent->child('lib')->stringify;
 
 use Local::Test::TempDir qw(tempdir);
 
@@ -22,51 +19,61 @@ main();
 
 sub main {
 
-    note('create Git test repository');
-    my $repo_path = path( tempdir() )->child('my_repo.git')->absolute;
-    mkdir $repo_path or die "Cannot create $repo_path";
+    # git status --porcelain requires Git 1.7.0
 
+  SKIP:
     {
-        my $git = Git::Wrapper->new( $repo_path->stringify );
-        $git->init;
-        $git->config( 'user.email', 'test@example.com' );
-        $git->config( 'user.name',  'Test' );
+        skip 'Cannot find Git in PATH', 1 if !eval { Git::Repository->version };
 
-        my $file_A = $repo_path->child('D');
-        $file_A->spew('5');
-        $git->add('D');
-        $git->commit( { message => 'initial commit' } );
-    }
+        note('create Git test repository');
+        my $repo_path = path( tempdir() )->child('my_repo.git')->absolute->stringify;
+        {
+            my $error;
+            {
+                local $@;    ## no critic (Variables::RequireInitializationForLocalVars)
+                my $ok = eval {
+                    Git::Repository->run( 'clone', '--bare', path(__FILE__)->absolute->parent(2)->child('corpus/test.bundle')->stringify(), $repo_path, { quiet => 1, fatal => ['!0'] } );
 
-    note('no git status --porcelain');
-    {
-        my $module = Test::MockModule->new('Git::Wrapper');
-        $module->mock( 'supports_status_porcelain', sub { return; } );
+                    1;
+                };
 
-        my $tzil;
-        my $exception = exception {
-            $tzil = Builder->from_config(
-                { dist_root => tempdir() },
-                {
-                    add_files => {
-                        'source/dist.ini' => simple_ini(
-                            '=Local::CreateFakeGitWorkspace',
-                            [
-                                'Git::Checkout',
-                                {
-                                    repo => $repo_path->stringify(),
-                                    dir  => 'ws',
-                                },
-                            ],
-                        ),
+                if ( !$ok ) {
+                    $error = $@;
+                }
+            }
+            skip "Cannot setup test repository: $error", 1 if defined $error;
+        }
+
+        note('no git status --porcelain');
+        {
+            my $module = Test::MockModule->new('Git::Repository');
+            $module->mock( 'version_ge', sub { return; } );
+
+            my $tzil;
+            my $exception = exception {
+                $tzil = Builder->from_config(
+                    { dist_root => tempdir() },
+                    {
+                        add_files => {
+                            'source/dist.ini' => simple_ini(
+                                '=Local::CreateFakeGitWorkspace',
+                                [
+                                    'Git::Checkout',
+                                    {
+                                        repo => $repo_path,
+                                        dir  => 'ws',
+                                    },
+                                ],
+                            ),
+                        },
                     },
-                },
-            );
-        };
+                );
+            };
 
-        like( $exception, qr{ \Q[Git::Checkout] Your 'git' is to old\E }xsm, q{throws an exception if 'git status --porcelain' is not supported} );
+            like( $exception, qr{ \Q[Git::Checkout] Your 'git' is to old. At least Git 1.7.0 is needed.\E }xsm, q{throws an exception if 'git status --porcelain' is not supported} );
+        }
+
     }
-
     done_testing;
 
     return;

@@ -1,7 +1,7 @@
 Revision history for Dist-Zilla-Plugin-Git-Checkout
 
 {{$NEXT}}
-  - Replace Git::Wrapper with Git::Repository (WIP)
+  - Replace Git::Wrapper with Git::Repository
   - Fetch new and changed tags
   - Ignore failures from "git pull --ff-only" because this only works for tracking branches
   - Improved testing
