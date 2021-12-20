@@ -30,7 +30,8 @@
       "runtime" : {
          "requires" : {
             "Dist::Zilla::Role::BeforeRelease" : "0",
-            "Git::Repository" : "0",
+            "Git::Background" : "0",
+            "Git::Version::Compare" : "0",
             "Moose" : "0",
             "MooseX::Types::Moose" : "0",
             "Path::Tiny" : "0",

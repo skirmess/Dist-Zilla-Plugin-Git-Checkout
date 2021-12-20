@@ -1,5 +1,6 @@
 requires 'Dist::Zilla::Role::BeforeRelease';
-requires 'Git::Repository';
+requires 'Git::Background';
+requires 'Git::Version::Compare';
 requires 'Moose';
 requires 'MooseX::Types::Moose';
 requires 'Path::Tiny';

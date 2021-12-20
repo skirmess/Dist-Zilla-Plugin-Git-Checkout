@@ -10,7 +10,7 @@ use Moose;
 
 with 'Dist::Zilla::Role::Plugin';
 
-use Git::Repository;
+use Git::Background;
 use MooseX::Types::Moose qw(Str);
 use Path::Tiny;
 
@@ -39,20 +39,20 @@ around plugin_from_config => sub {
 
         my $ok = eval {
             my $workspace = path($repo_path)->absolute->parent->child('update_ws');
-            Git::Repository->run( 'clone', $repo_path, $workspace->stringify, { quiet => 1, fatal => ['!0'] } );
-            my $git = Git::Repository->new( work_tree => $workspace->stringify );
+            my $git       = Git::Background->new($workspace);
+            $git->run( 'clone', $repo_path, $workspace->stringify, { dir => undef } )->get;
 
             my $file_c = path($workspace)->child('C');
             $file_c->spew('1087');
 
-            $git->run( 'add', 'C', { quiet => 1, fatal => ['!0'] } );
-            $git->run( 'commit', '-m', 'third commit', { quiet => 1, fatal => ['!0'] } );
+            $git->run( 'add', 'C' )->get;
+            $git->run( 'commit', '-m', 'third commit' )->get;
 
-            $git->run( 'tag', '-d', 'my-tag', { quiet => 1, fatal => ['!0'] } );
-            $git->run( 'tag', 'my-tag', { quiet => 1, fatal => ['!0'] } );
+            $git->run( 'tag', '-d', 'my-tag' )->get;
+            $git->run( 'tag', 'my-tag' )->get;
 
-            $git->run( 'push', { quiet => 1, fatal => ['!0'] } );
-            $git->run( 'push', '--tags', '-f', { quiet => 1, fatal => ['!0'] } );
+            $git->run('push')->get;
+            $git->run( 'push', '--tags', '-f' )->get;
 
             1;
         };

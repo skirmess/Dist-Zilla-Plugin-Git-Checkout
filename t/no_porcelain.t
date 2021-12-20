@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-use Git::Repository;
+use Git::Background;
 use Path::Tiny;
 use Test::DZil;
 use Test::Fatal;
@@ -23,7 +23,7 @@ sub main {
 
   SKIP:
     {
-        skip 'Cannot find Git in PATH', 1 if !eval { Git::Repository->version };
+        skip 'Cannot find Git in PATH', 1 if !defined Git::Background->version;
 
         note('create Git test repository');
         my $repo_path = path( tempdir() )->child('my_repo.git')->absolute->stringify;
@@ -32,7 +32,7 @@ sub main {
             {
                 local $@;    ## no critic (Variables::RequireInitializationForLocalVars)
                 my $ok = eval {
-                    Git::Repository->run( 'clone', '--bare', path(__FILE__)->absolute->parent(2)->child('corpus/test.bundle')->stringify(), $repo_path, { quiet => 1, fatal => ['!0'] } );
+                    Git::Background->new->run( 'clone', '--bare', path(__FILE__)->absolute->parent(2)->child('corpus/test.bundle')->stringify(), $repo_path )->get;
 
                     1;
                 };
@@ -46,8 +46,8 @@ sub main {
 
         note('no git status --porcelain');
         {
-            my $module = Test::MockModule->new('Git::Repository');
-            $module->mock( 'version_ge', sub { return; } );
+            my $module = Test::MockModule->new('Git::Version::Compare');
+            $module->mock( 'ge_git', sub { return; } );
 
             my $tzil;
             my $exception = exception {
@@ -74,6 +74,7 @@ sub main {
         }
 
     }
+
     done_testing;
 
     return;

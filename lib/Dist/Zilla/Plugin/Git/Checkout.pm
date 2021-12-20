@@ -10,7 +10,8 @@ use Moose;
 
 with 'Dist::Zilla::Role::BeforeRelease';
 
-use Git::Repository;
+use Git::Background;
+use Git::Version::Compare qw(ge_git);
 use MooseX::Types::Moose qw(Bool Str);
 use Path::Tiny;
 use Term::ANSIColor qw(colored);
@@ -66,58 +67,57 @@ sub before_release {
 sub _checkout {
     my ($self) = @_;
 
-    $self->log_fatal(q{No 'git' in PATH}) if !eval { Git::Repository->version; 1; };
+    my $git_version = Git::Background->version;
+    $self->log_fatal(q{No 'git' in PATH}) if !defined $git_version;
 
     # https://stackoverflow.com/a/6978402/8173111
     # git status --porcelain, commit 6f15787, September 2009, git 1.7.0,
     # https://github.com/git/git/commit/6f15787181a163e158c6fee1d79085b97692ac2f
-    $self->log_fatal(q{Your 'git' is to old. At least Git 1.7.0 is needed.}) if !Git::Repository->version_ge('1.7.0');
+    $self->log_fatal(q{Your 'git' is to old. At least Git 1.7.0 is needed.}) if !ge_git( $git_version, '1.7.0' );
 
     my $dir      = path( $self->zilla->root )->child( path( $self->dir ) )->absolute;
     my $repo     = $self->repo;
     my $checkout = $self->checkout;
-    my $git;
 
-    if ( $dir->is_dir ) {
-        $self->log_fatal("Directory $dir exists but is not a Git repository") if !$dir->child('.git')->is_dir;
+    my $git = Git::Background->new($dir);
 
-        $git = Git::Repository->new( work_tree => $dir->stringify, { quiet => 1, fatal => ['!0'] } );
+    if ( -d $dir ) {
+        $self->log_fatal("Directory $dir exists but is not a Git repository") if !-d $dir->child('.git');
 
-        my ($origin) = $git->run( 'config', 'remote.origin.url' );
+        my ($origin) = $git->run( 'config', 'remote.origin.url' )->stdout;
         $self->log_fatal("Directory $dir is not a Git repository for $repo") if $origin ne $repo;
 
-        if ( $git->run( 'status', '--porcelain' ) ) {
+        if ( $git->run( 'status', '--porcelain' )->stdout ) {
             $self->log( colored( "Git workspace $dir is dirty - skipping checkout", 'yellow' ) );
             $self->_is_dirty(1);
             return;
         }
 
         $self->log("Fetching $repo in $dir");
-        $git->run( 'fetch', '--tags', '-f' );
+        $git->run( 'fetch', '--tags', '-f' )->get;
     }
     else {
         $self->log("Cloning $repo into $dir");
-        Git::Repository->run( 'clone', $repo, $dir->stringify, { quiet => 1, fatal => ['!0'] } );
-        $git = Git::Repository->new( work_tree => $dir->stringify, { quiet => 1, fatal => ['!0'] } );
+        $git->run( 'clone', $repo, $dir->stringify, { dir => undef } )->get;
     }
 
     # Configure or remove the push url
     if ( defined $self->push_url ) {
-        $git->run( 'remote', 'set-url', '--push', 'origin', $self->push_url );
+        $git->run( 'remote', 'set-url', '--push', 'origin', $self->push_url )->get;
     }
     else {
-        my ($push_url) = eval { $git->run( 'config', 'remote.origin.pushurl' ); };
+        my ($push_url) = eval { $git->run( 'config', 'remote.origin.pushurl' )->stdout; };
         if ( defined $push_url ) {
-            $git->run( 'remote', 'set-url', '--delete', '--push', 'origin', $push_url );
+            $git->run( 'remote', 'set-url', '--delete', '--push', 'origin', $push_url )->get;
         }
     }
 
     # We don't know what the default branch is. It's easier to just check it out again.
     $self->log("Checking out $checkout in $dir");
-    $git->run( 'checkout', $checkout );
+    $git->run( 'checkout', $checkout )->get;
 
     # This fails if we're not on a tracking branch - ignore the failure
-    eval { $git->run( 'pull', '--ff-only' ); };    ## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
+    eval { $git->run( 'pull', '--ff-only' )->get; };    ## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
 
     return;
 }

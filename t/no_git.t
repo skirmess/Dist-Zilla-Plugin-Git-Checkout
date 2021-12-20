@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-use Git::Repository;
+use Git::Background;
 use Path::Tiny;
 use Test::DZil;
 use Test::Fatal;
@@ -22,7 +22,7 @@ sub main {
     {
         local $ENV{PATH} = path( tempdir() )->absolute->stringify;
 
-        skip q{Cannot remove 'git' from PATH}, 1 if eval { Git::Repository->version };
+        skip q{Cannot remove 'git' from PATH}, 1 if defined Git::Background->version;
 
         my $tzil;
         my $exception = exception {
