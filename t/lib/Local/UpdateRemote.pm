@@ -10,7 +10,7 @@ use Moose;
 
 with 'Dist::Zilla::Role::Plugin';
 
-use Git::Background;
+use Git::Background 0.002;
 use MooseX::Types::Moose qw(Str);
 use Path::Tiny;
 
@@ -39,8 +39,8 @@ around plugin_from_config => sub {
 
         my $ok = eval {
             my $workspace = path($repo_path)->absolute->parent->child('update_ws');
-            my $git       = Git::Background->new($workspace);
-            $git->run( 'clone', $repo_path, $workspace->stringify, { dir => undef } )->get;
+            Git::Background->run( 'clone', $repo_path, $workspace->stringify )->get;
+            my $git = Git::Background->new($workspace);
 
             my $file_c = path($workspace)->child('C');
             $file_c->spew('1087');

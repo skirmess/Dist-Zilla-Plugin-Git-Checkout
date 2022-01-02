@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-use Git::Background;
+use Git::Background 0.002;
 use Git::Version::Compare qw(ge_git);
 use Path::Tiny;
 use Test::DZil;
@@ -53,14 +53,12 @@ sub main {
 
                     # branch master, 2 commits, A ->  7
                     # branch dev,    3 commits, A -> 11, B -> 13
-                    my $git = Git::Background->new($repo_path);
-                    $git->run( 'clone', '--bare', path(__FILE__)->absolute->parent(2)->child('corpus/test.bundle')->stringify(), $repo_path, { dir => undef } )->get;
-                    $git->run( 'remote', 'remove', 'origin' )->get;
+                    Git::Background->run( 'clone',  '--bare', path(__FILE__)->absolute->parent(2)->child('corpus/test.bundle')->stringify(), $repo_path )->get;
+                    Git::Background->run( 'remote', 'remove', 'origin',                                                                      { dir => $repo_path } )->get;
 
                     # branch master, 1 commit, C -> 419
-                    $git = Git::Background->new($repo_path2);
-                    $git->run( 'clone', '--bare', path(__FILE__)->absolute->parent(2)->child('corpus/test2.bundle')->stringify(), $repo_path2, { dir => undef } )->get;
-                    $git->run( 'remote', 'remove', 'origin' )->get;
+                    Git::Background->run( 'clone',  '--bare', path(__FILE__)->absolute->parent(2)->child('corpus/test2.bundle')->stringify(), $repo_path2 )->get;
+                    Git::Background->run( 'remote', 'remove', 'origin',                                                                       { dir => $repo_path2 } )->get;
 
                     1;
                 };
@@ -135,8 +133,7 @@ sub main {
                 ok( !-e $workdir->child('B'),          '... only' );
                 is( $workdir->child('A')->slurp, '7', '... with the correct content' );
 
-                my $git    = Git::Background->new($workdir);
-                my @config = $git->run(qw(config -l))->stdout;
+                my @config = Git::Background->run( 'config', '-l', { dir => $workdir } )->stdout;
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
                 is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -154,8 +151,7 @@ sub main {
                 ok( !-e $workdir->child('B'),          '... only' );
                 is( $workdir->child('A')->slurp, '7', '... with the correct content' );
 
-                my $git    = Git::Background->new($workdir);
-                my @config = $git->run(qw(config -l))->stdout;
+                my @config = Git::Background->run( 'config', '-l', { dir => $workdir } )->stdout;
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
                 is( ( scalar grep { $_ eq "[secondCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -173,8 +169,7 @@ sub main {
                 ok( !-e $workdir->child('B'),          '... only' );
                 is( $workdir->child('A')->slurp, '7', '... with the correct content' );
 
-                my $git    = Git::Background->new($workdir);
-                my @config = $git->run(qw(config -l))->stdout;
+                my @config = Git::Background->run( 'config', '-l', { dir => $workdir } )->stdout;
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=http://example.com/my_repo.git\E $ }xsm } @config ), 1, '... correct push url is defined' );
 
                 is( ( scalar grep { $_ eq "[thirdCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -193,8 +188,7 @@ sub main {
                 ok( -f $workdir->child('B'), '... with the correct file (B)' )
                   and is( $workdir->child('B')->slurp, '13', '... with the correct content' );
 
-                my $git    = Git::Background->new($workdir);
-                my @config = $git->run(qw(config -l))->stdout;
+                my @config = Git::Background->run( 'config', '-l', { dir => $workdir } )->stdout;
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
                 is( ( scalar grep { $_ eq "[devBranchCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -213,8 +207,7 @@ sub main {
                 ok( -f $workdir->child('B'), '... with the correct file (B)' )
                   and is( $workdir->child('B')->slurp, '13', '... with the correct content' );
 
-                my $git    = Git::Background->new($workdir);
-                my @config = $git->run(qw(config -l))->stdout;
+                my @config = Git::Background->run( 'config', '-l', { dir => $workdir } )->stdout;
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=http://example.com/my_dev_repo.git\E $ }xsm } @config ), 1, '... correct push url is defined' );
 
                 is( ( scalar grep { $_ eq "[devBranchCheckout2] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -277,6 +270,41 @@ sub main {
                     },
                 );
             };
+
+            like( $exception, qr{ \Q[Git::Checkout] Directory \E .*\Qws is not a Git repository for $repo_path\E }xsm, 'throws an exception if the workspace directory exists but is not a Git workspace for the correct repository' );
+        }
+
+        note('dir exists already but is not workspace for the correct repository (no origin)');
+        {
+            my $exception = exception {
+                Builder->from_config(
+                    { dist_root => tempdir() },
+                    {
+                        add_files => {
+                            'source/dist.ini' => simple_ini(
+                                [
+                                    'Git::Checkout',
+                                    'wrongRepoCheckout',
+                                    {
+                                        repo => $repo_path,
+                                        dir  => 'ws',
+                                    },
+                                ],
+                                '=Local::RemoveOrigin',
+                                [
+                                    'Git::Checkout',
+                                    {
+                                        repo => $repo_path,
+                                        dir  => 'ws',
+                                    },
+                                ],
+                            ),
+                        },
+                    },
+                );
+            };
+
+            skip "Test setup failed\n$Local::RemoveOrigin::NOK", 1 if defined $Local::RemoveOrigin::NOK;
 
             like( $exception, qr{ \Q[Git::Checkout] Directory \E .*\Qws is not a Git repository for $repo_path\E }xsm, 'throws an exception if the workspace directory exists but is not a Git workspace for the correct repository' );
         }
@@ -400,8 +428,7 @@ sub main {
             ok( -f $workdir->child('A'),           '... with the correct file' )
               and is( $workdir->child('A')->slurp, '7', '... with the correct (dirty) content' );
 
-            my $git    = Git::Background->new($workdir);
-            my @config = $git->run(qw(config -l))->stdout;
+            my @config = Git::Background->run( 'config', '-l', { dir => $workdir } )->stdout;
             is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
             is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -450,8 +477,7 @@ sub main {
             ok( -f $workdir->child('A'),           '... with the correct file' )
               and is( $workdir->child('A')->slurp, '67', '... with the correct (dirty) content' );
 
-            my $git    = Git::Background->new($workdir);
-            my @config = $git->run(qw(config -l))->stdout;
+            my @config = Git::Background->run( 'config', '-l', { dir => $workdir } )->stdout;
             is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
             is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -500,8 +526,7 @@ sub main {
             ok( -f $workdir->child('A'),           '... with the correct file' )
               and is( $workdir->child('A')->slurp, '7', '... with the correct (dirty) content' );
 
-            my $git    = Git::Background->new($workdir);
-            my @config = $git->run(qw(config -l))->stdout;
+            my @config = Git::Background->run( 'config', '-l', { dir => $workdir } )->stdout;
             is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
             is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -584,8 +609,7 @@ sub main {
                 ok( -f $workdir->child('C'),           '... updated file exists' )
                   and is( $workdir->child('C')->slurp, '1087', '... with the correct content' );
 
-                my $git    = Git::Background->new($workdir);
-                my @config = $git->run(qw(config -l))->stdout;
+                my @config = Git::Background->run( 'config', '-l', { dir => $workdir } )->stdout;
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
                 is( ( scalar grep { $_ eq "[branchCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
@@ -608,8 +632,7 @@ sub main {
                 ok( -f $workdir->child('C'),           '... updated file exists' );
                 is( $workdir->child('C')->slurp, '1087', '... with the correct content' );
 
-                my $git    = Git::Background->new($workdir);
-                my @config = $git->run(qw(config -l))->stdout;
+                my @config = Git::Background->run( 'config', '-l', { dir => $workdir } )->stdout;
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
                 is( ( scalar grep { $_ eq "[tagCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )

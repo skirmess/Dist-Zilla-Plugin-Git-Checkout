@@ -4,11 +4,11 @@ use 5.006;
 use strict;
 use warnings;
 
-use Git::Background;
+use Git::Background 0.002;
 use Path::Tiny;
 use Test::DZil;
 use Test::Fatal;
-use Test::MockModule;
+use Test::MockModule 0.14;
 use Test::More 0.88;
 
 use lib path(__FILE__)->absolute->parent->child('lib')->stringify;
@@ -28,26 +28,18 @@ sub main {
         note('create Git test repository');
         my $repo_path = path( tempdir() )->child('my_repo.git')->absolute->stringify;
         {
-            my $error;
-            {
-                local $@;    ## no critic (Variables::RequireInitializationForLocalVars)
-                my $ok = eval {
-                    Git::Background->new->run( 'clone', '--bare', path(__FILE__)->absolute->parent(2)->child('corpus/test.bundle')->stringify(), $repo_path )->get;
-
-                    1;
-                };
-
-                if ( !$ok ) {
-                    $error = $@;
-                }
+            my $future = Git::Background->run( 'clone', '--bare', path(__FILE__)->absolute->parent(2)->child('corpus/test.bundle')->stringify(), $repo_path );
+            $future->await;
+            if ( $future->is_failed ) {
+                my ($error) = $future->failure;
+                skip "Cannot setup test repository: $error", 1;
             }
-            skip "Cannot setup test repository: $error", 1 if defined $error;
         }
 
         note('no git status --porcelain');
         {
             my $module = Test::MockModule->new('Git::Version::Compare');
-            $module->mock( 'ge_git', sub { return; } );
+            $module->redefine( 'ge_git', sub { return; } );
 
             my $tzil;
             my $exception = exception {

@@ -10,7 +10,7 @@ use Moose;
 
 with 'Dist::Zilla::Role::BeforeRelease';
 
-use Git::Background;
+use Git::Background 0.002;
 use Git::Version::Compare qw(ge_git);
 use MooseX::Types::Moose qw(Bool Str);
 use Path::Tiny;
@@ -78,14 +78,14 @@ sub _checkout {
     my $dir      = path( $self->zilla->root )->child( path( $self->dir ) )->absolute;
     my $repo     = $self->repo;
     my $checkout = $self->checkout;
+    my $git      = Git::Background->new($dir);
 
-    my $git = Git::Background->new($dir);
+    if ( $dir->is_dir ) {
+        $self->log_fatal("Directory $dir exists but is not a Git repository") if !$dir->child('.git')->is_dir;
 
-    if ( -d $dir ) {
-        $self->log_fatal("Directory $dir exists but is not a Git repository") if !-d $dir->child('.git');
-
-        my ($origin) = $git->run( 'config', 'remote.origin.url' )->stdout;
-        $self->log_fatal("Directory $dir is not a Git repository for $repo") if $origin ne $repo;
+        my $future = $git->run( 'config', 'remote.origin.url' );
+        $future->await;
+        $self->log_fatal("Directory $dir is not a Git repository for $repo") if $future->is_failed || ( $future->stdout )[0] ne $repo;
 
         if ( $git->run( 'status', '--porcelain' )->stdout ) {
             $self->log( colored( "Git workspace $dir is dirty - skipping checkout", 'yellow' ) );
@@ -98,7 +98,7 @@ sub _checkout {
     }
     else {
         $self->log("Cloning $repo into $dir");
-        $git->run( 'clone', $repo, $dir->stringify, { dir => undef } )->get;
+        Git::Background->run( 'clone', $repo, $dir->stringify )->get;
     }
 
     # Configure or remove the push url
@@ -106,9 +106,14 @@ sub _checkout {
         $git->run( 'remote', 'set-url', '--push', 'origin', $self->push_url )->get;
     }
     else {
-        my ($push_url) = eval { $git->run( 'config', 'remote.origin.pushurl' )->stdout; };
-        if ( defined $push_url ) {
-            $git->run( 'remote', 'set-url', '--delete', '--push', 'origin', $push_url )->get;
+        my $future = $git->run( 'config', 'remote.origin.pushurl' );
+        $future->await;
+        if ( $future->is_done ) {
+            my ($push_url) = $future->stdout;
+
+            if ( defined $push_url ) {
+                $git->run( 'remote', 'set-url', '--delete', '--push', 'origin', $push_url )->get;
+            }
         }
     }
 
@@ -116,8 +121,9 @@ sub _checkout {
     $self->log("Checking out $checkout in $dir");
     $git->run( 'checkout', $checkout )->get;
 
-    # This fails if we're not on a tracking branch - ignore the failure
-    eval { $git->run( 'pull', '--ff-only' )->get; };    ## no critic (ErrorHandling::RequireCheckingReturnValueOfEval)
+    # This fails if we're not on a tracking branch - ignore the failure by
+    # calling await instead of get
+    $git->run( 'pull', '--ff-only' )->await;
 
     return;
 }
@@ -222,7 +228,7 @@ Sven Kirmess <sven.kirmess@kzone.ch>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2020-2021 by Sven Kirmess.
+This software is Copyright (c) 2020-2022 by Sven Kirmess.
 
 This is free software, licensed under:
 

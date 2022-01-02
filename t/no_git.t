@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-use Git::Background;
+use Git::Background 0.002;
 use Path::Tiny;
 use Test::DZil;
 use Test::Fatal;
