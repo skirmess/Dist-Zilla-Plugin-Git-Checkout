@@ -2,6 +2,8 @@ Revision history for Dist-Zilla-Plugin-Git-Checkout
 
 {{$NEXT}}
 
+0.004  2022-01-08 20:17:50 UTC
+
   INCOMPATIBLE CHANGES:
   - The checkout parameter is replaced with a branch, revision, and tag parameter
 

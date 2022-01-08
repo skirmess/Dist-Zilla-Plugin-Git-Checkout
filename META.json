@@ -71,7 +71,7 @@
          "web" : "https://github.com/skirmess/Dist-Zilla-Plugin-Git-Checkout"
       }
    },
-   "version" : "0.003",
+   "version" : "0.004",
    "x_spdx_expression" : "BSD-2-Clause-FreeBSD"
 }
 

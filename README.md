@@ -4,7 +4,7 @@ Dist::Zilla::Plugin::Git::Checkout - clone and checkout a Git repository
 
 # VERSION
 
-Version 0.003
+Version 0.004
 
 # SYNOPSIS
 
