@@ -4,7 +4,8 @@ use 5.006;
 use strict;
 use warnings;
 
-use Git::Background 0.002;
+use Git::Background 0.003;
+use Git::Version::Compare;
 use Path::Tiny;
 use Test::DZil;
 use Test::Fatal;
@@ -18,9 +19,7 @@ use Local::Test::TempDir qw(tempdir);
 main();
 
 sub main {
-
-    # git status --porcelain requires Git 1.7.0
-
+    note('Dist::Zilla::Plugin::Git::Checkout requires at least Git 1.7.10');
   SKIP:
     {
         skip 'Cannot find Git in PATH', 1 if !defined Git::Background->version;
@@ -36,10 +35,9 @@ sub main {
             }
         }
 
-        note('no git status --porcelain');
         {
-            my $module = Test::MockModule->new('Git::Version::Compare');
-            $module->redefine( 'ge_git', sub { return; } );
+            my $mock = Test::MockModule->new('Git::Version::Compare');
+            $mock->redefine( 'ge_git', sub { return; } );
 
             my $tzil;
             my $exception = exception {
@@ -62,9 +60,10 @@ sub main {
                 );
             };
 
-            like( $exception, qr{ \Q[Git::Checkout] Your 'git' is to old. At least Git 1.7.0 is needed.\E }xsm, q{throws an exception if 'git status --porcelain' is not supported} );
-        }
+            like( $exception, qr{ \Q[Git::Checkout] Your 'git' is too old. At least Git 1.7.10 is needed.\E }xsm, q{throws an exception if Git is too old} );
 
+            $mock->unmock('ge_git');
+        }
     }
 
     done_testing;

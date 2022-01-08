@@ -32,7 +32,7 @@ no_index:
     - xt
 requires:
   Dist::Zilla::Role::BeforeRelease: '0'
-  Git::Background: '0.002'
+  Git::Background: '0.003'
   Git::Version::Compare: '0'
   Moose: '0'
   MooseX::Types::Moose: '0'

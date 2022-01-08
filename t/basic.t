@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-use Git::Background 0.002;
+use Git::Background 0.003;
 use Git::Version::Compare qw(ge_git);
 use Path::Tiny;
 use Test::DZil;
@@ -39,8 +39,8 @@ sub main {
   SKIP:
     {
         my $git_version = Git::Background->version;
-        skip 'Cannot find Git in PATH',    1 if !defined $git_version;
-        skip 'Git must be at least 1.7.0', 1 if !ge_git( $git_version, '1.7.0' );
+        skip 'Cannot find Git in PATH',     1 if !defined $git_version;
+        skip 'Git must be at least 1.7.10', 1 if !ge_git( $git_version, '1.7.10' );
 
         note('create Git test repository');
         my $repo_path  = path( tempdir() )->child('my_repo.git')->absolute->stringify;
@@ -51,6 +51,7 @@ sub main {
                 local $@;    ## no critic (Variables::RequireInitializationForLocalVars)
                 my $ok = eval {
 
+                    # tag v47,       1 commit,  A ->  5
                     # branch master, 2 commits, A ->  7
                     # branch dev,    3 commits, A -> 11, B -> 13
                     Git::Background->run( 'clone',  '--bare', path(__FILE__)->absolute->parent(2)->child('corpus/test.bundle')->stringify(), $repo_path )->get;
@@ -93,6 +94,15 @@ sub main {
                             ],
                             [
                                 'Git::Checkout',
+                                'tagCheckout',
+                                {
+                                    repo => $repo_path,
+                                    dir  => 'my_repo_tag',
+                                    tag  => 'v47',
+                                },
+                            ],
+                            [
+                                'Git::Checkout',
                                 'thirdCheckout',
                                 {
                                     repo     => $repo_path,
@@ -104,9 +114,9 @@ sub main {
                                 'Git::Checkout',
                                 'devBranchCheckout',
                                 {
-                                    repo     => $repo_path,
-                                    dir      => 'my_repo_dev',
-                                    checkout => 'dev',
+                                    repo   => $repo_path,
+                                    dir    => 'my_repo_dev',
+                                    branch => 'dev',
                                 },
                             ],
                             [
@@ -115,7 +125,7 @@ sub main {
                                 {
                                     repo     => $repo_path,
                                     dir      => 'my_repo_dev2',
-                                    checkout => 'dev',
+                                    branch   => 'dev',
                                     push_url => 'http://example.com/my_dev_repo.git',
                                 },
                             ],
@@ -138,8 +148,6 @@ sub main {
 
                 is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
                   or diag 'got log messages: ', explain $tzil->log_messages;
-                is( ( scalar grep { $_ eq "[Git::Checkout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-                  or diag 'got log messages: ', explain $tzil->log_messages;
             }
 
             note('with dir');
@@ -156,7 +164,23 @@ sub main {
 
                 is( ( scalar grep { $_ eq "[secondCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
                   or diag 'got log messages: ', explain $tzil->log_messages;
-                is( ( scalar grep { $_ eq "[secondCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+            }
+
+            note('with dir and tag');
+            {
+                my $workdir = path( $tzil->root )->child('my_repo_tag');
+                ok( $workdir->is_dir(),                'workspace is checked out' );
+                ok( $workdir->child('.git')->is_dir(), '... with a .git directory' );
+                ok( -f $workdir->child('A'),           '... with the correct file' );
+                ok( !-e $workdir->child('B'),          '... only' );
+                is( $workdir->child('A')->slurp, '5', '... with the correct content' );
+
+                my @config = Git::Background->run( 'config', '-l', { dir => $workdir } )->stdout;
+                is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
+
+                is( ( scalar grep { $_ eq "[tagCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
+                  or diag 'got log messages: ', explain $tzil->log_messages;
+                is( ( scalar grep { $_ eq "[tagCheckout] Checking out tag v47 in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
                   or diag 'got log messages: ', explain $tzil->log_messages;
             }
 
@@ -174,11 +198,9 @@ sub main {
 
                 is( ( scalar grep { $_ eq "[thirdCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
                   or diag 'got log messages: ', explain $tzil->log_messages;
-                is( ( scalar grep { $_ eq "[thirdCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-                  or diag 'got log messages: ', explain $tzil->log_messages;
             }
 
-            note('with dir, and checkout');
+            note('with dir and branch');
             {
                 my $workdir = path( $tzil->root )->child('my_repo_dev');
                 ok( $workdir->is_dir(),                'workspace is checked out' );
@@ -191,9 +213,7 @@ sub main {
                 my @config = Git::Background->run( 'config', '-l', { dir => $workdir } )->stdout;
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
-                is( ( scalar grep { $_ eq "[devBranchCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
-                  or diag 'got log messages: ', explain $tzil->log_messages;
-                is( ( scalar grep { $_ eq "[devBranchCheckout] Checking out dev in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+                is( ( scalar grep { $_ eq "[devBranchCheckout] Cloning $repo_path into $workdir (branch dev)" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
                   or diag 'got log messages: ', explain $tzil->log_messages;
             }
 
@@ -210,9 +230,7 @@ sub main {
                 my @config = Git::Background->run( 'config', '-l', { dir => $workdir } )->stdout;
                 is( scalar grep( { m{ ^ \Qremote.origin.pushurl=http://example.com/my_dev_repo.git\E $ }xsm } @config ), 1, '... correct push url is defined' );
 
-                is( ( scalar grep { $_ eq "[devBranchCheckout2] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
-                  or diag 'got log messages: ', explain $tzil->log_messages;
-                is( ( scalar grep { $_ eq "[devBranchCheckout2] Checking out dev in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+                is( ( scalar grep { $_ eq "[devBranchCheckout2] Cloning $repo_path into $workdir (branch dev)" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
                   or diag 'got log messages: ', explain $tzil->log_messages;
             }
         }
@@ -349,6 +367,110 @@ sub main {
               or diag 'got log messages: ', explain $tzil->log_messages;
         }
 
+        note('wrong branch');
+        {
+            my $exception = exception {
+                Builder->from_config(
+                    { dist_root => tempdir() },
+                    {
+                        add_files => {
+                            'source/dist.ini' => simple_ini(
+                                [
+                                    'Git::Checkout',
+                                    {
+                                        repo => $repo_path,
+                                        dir  => 'ws',
+                                    },
+                                ],
+                                [
+                                    'Git::Checkout',
+                                    'secondCheckout',
+                                    {
+                                        repo   => $repo_path,
+                                        dir    => 'ws',
+                                        branch => 'dev',
+                                    },
+                                ],
+                            ),
+                        },
+                    },
+                );
+            };
+
+            like( $exception, qr{ \Q[secondCheckout] Directory \E .*\Qws is not on branch dev}xsm, 'throws an exception if the workspace directory exists but is for a different branch' );
+
+        }
+
+        note('not on branch');
+        {
+            my $exception = exception {
+                Builder->from_config(
+                    { dist_root => tempdir() },
+                    {
+                        add_files => {
+                            'source/dist.ini' => simple_ini(
+                                [
+                                    'Git::Checkout',
+                                    {
+                                        repo => $repo_path,
+                                        dir  => 'ws',
+                                        tag  => 'my-tag',
+                                    },
+                                ],
+                                [
+                                    'Git::Checkout',
+                                    'secondCheckout',
+                                    {
+                                        repo   => $repo_path,
+                                        dir    => 'ws',
+                                        branch => 'dev',
+                                    },
+                                ],
+                            ),
+                        },
+                    },
+                );
+            };
+
+            like( $exception, qr{ \Q[secondCheckout] Directory \E .*\Qws is not on branch dev}xsm, 'throws an exception if the workspace directory exists but is not on a branch' );
+
+        }
+
+        note('wrong branch (!master)');
+        {
+            my $exception = exception {
+                Builder->from_config(
+                    { dist_root => tempdir() },
+                    {
+                        add_files => {
+                            'source/dist.ini' => simple_ini(
+                                [
+                                    'Git::Checkout',
+                                    {
+                                        repo => $repo_path,
+                                        dir  => 'ws',
+                                    },
+                                ],
+                                '=Local::UpdateOriginHEAD',
+                                [
+                                    'Git::Checkout',
+                                    'secondCheckout',
+                                    {
+                                        repo => $repo_path,
+                                        dir  => 'ws',
+                                    },
+                                ],
+                            ),
+                        },
+                    },
+                );
+            };
+
+            skip "Test setup failed\n$Local::UpdateOriginHEAD::NOK", 1 if defined $Local::UpdateOriginHEAD::NOK;
+
+            like( $exception, qr{ \Q[secondCheckout] Directory \E .*\Qws is not on branch dev}xsm, 'throws an exception if the workspace directory exists but is for a different branch' );
+        }
+
         note('fetch');
         {
             my $tzil = Builder->from_config(
@@ -385,12 +507,8 @@ sub main {
 
             is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
               or diag 'got log messages: ', explain $tzil->log_messages;
-            is( ( scalar grep { $_ eq "[Git::Checkout] Checking out dev in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-              or diag 'got log messages: ', explain $tzil->log_messages;
 
-            is( ( scalar grep { $_ eq "[secondCheckout] Fetching $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... fetch message got logged' )
-              or diag 'got log messages: ', explain $tzil->log_messages;
-            is( ( scalar grep { $_ eq "[secondCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+            is( ( scalar grep { $_ eq "[secondCheckout] Pulling $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... fetch message got logged' )
               or diag 'got log messages: ', explain $tzil->log_messages;
         }
 
@@ -433,12 +551,8 @@ sub main {
 
             is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
               or diag 'got log messages: ', explain $tzil->log_messages;
-            is( ( scalar grep { $_ eq "[Git::Checkout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-              or diag 'got log messages: ', explain $tzil->log_messages;
 
-            is( ( scalar grep { $_ eq "[secondCheckout] Fetching $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... fetch message got logged' )
-              or diag 'got log messages: ', explain $tzil->log_messages;
-            is( ( scalar grep { $_ eq "[secondCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+            is( ( scalar grep { $_ eq "[secondCheckout] Pulling $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... fetch message got logged' )
               or diag 'got log messages: ', explain $tzil->log_messages;
         }
 
@@ -481,8 +595,6 @@ sub main {
             is( scalar grep( { m{ ^ \Qremote.origin.pushurl=\E }xsm } @config ), 0, '... no push url is defined' );
 
             is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
-              or diag 'got log messages: ', explain $tzil->log_messages;
-            is( ( scalar grep { $_ eq "[Git::Checkout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
               or diag 'got log messages: ', explain $tzil->log_messages;
 
             is( ( scalar grep { $_ =~ m{ ^\Q[secondCheckout] \E.*\QGit workspace $workdir is dirty - skipping checkout\E }xsm } @{ $tzil->log_messages() } ), 1, '... correct message is logged (is dirty)' )
@@ -531,12 +643,8 @@ sub main {
 
             is( ( scalar grep { $_ eq "[Git::Checkout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
               or diag 'got log messages: ', explain $tzil->log_messages;
-            is( ( scalar grep { $_ eq "[Git::Checkout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-              or diag 'got log messages: ', explain $tzil->log_messages;
 
-            is( ( scalar grep { $_ eq "[secondCheckout] Fetching $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... fetch message got logged' )
-              or diag 'got log messages: ', explain $tzil->log_messages;
-            is( ( scalar grep { $_ eq "[secondCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+            is( ( scalar grep { $_ eq "[secondCheckout] Pulling $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... fetch message got logged' )
               or diag 'got log messages: ', explain $tzil->log_messages;
 
             # don't know how to test the prompt_yn stuff
@@ -562,9 +670,9 @@ sub main {
                                 'Git::Checkout',
                                 'tagCheckout',
                                 {
-                                    repo     => $repo_path,
-                                    dir      => 'my_tag',
-                                    checkout => 'my-tag',
+                                    repo => $repo_path,
+                                    dir  => 'my_tag',
+                                    tag  => 'my-tag',
                                 },
                             ],
                             [
@@ -587,9 +695,9 @@ sub main {
                                 'Git::Checkout',
                                 'tagUpdate',
                                 {
-                                    repo     => $repo_path,
-                                    dir      => 'my_tag',
-                                    checkout => 'my-tag',
+                                    repo => $repo_path,
+                                    dir  => 'my_tag',
+                                    tag  => 'my-tag',
                                 },
                             ],
                         ),
@@ -614,11 +722,8 @@ sub main {
 
                 is( ( scalar grep { $_ eq "[branchCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
                   or diag 'got log messages: ', explain $tzil->log_messages;
-                is( ( scalar grep { $_ eq "[branchCheckout] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
-                  or diag 'got log messages: ', explain $tzil->log_messages;
-                is( ( scalar grep { $_ eq "[branchUpdate] Fetching $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... fetch message got logged' )
-                  or diag 'got log messages: ', explain $tzil->log_messages;
-                is( ( scalar grep { $_ eq "[branchUpdate] Checking out master in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+
+                is( ( scalar grep { $_ eq "[branchUpdate] Pulling $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... fetch message got logged' )
                   or diag 'got log messages: ', explain $tzil->log_messages;
             }
 
@@ -637,11 +742,12 @@ sub main {
 
                 is( ( scalar grep { $_ eq "[tagCheckout] Cloning $repo_path into $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
                   or diag 'got log messages: ', explain $tzil->log_messages;
-                is( ( scalar grep { $_ eq "[tagCheckout] Checking out my-tag in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+                is( ( scalar grep { $_ eq "[tagCheckout] Checking out tag my-tag in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
                   or diag 'got log messages: ', explain $tzil->log_messages;
+
                 is( ( scalar grep { $_ eq "[tagUpdate] Fetching $repo_path in $workdir" } @{ $tzil->log_messages() } ), 1, '... clone message got logged' )
                   or diag 'got log messages: ', explain $tzil->log_messages;
-                is( ( scalar grep { $_ eq "[tagUpdate] Checking out my-tag in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
+                is( ( scalar grep { $_ eq "[tagUpdate] Checking out tag my-tag in $workdir" } @{ $tzil->log_messages() } ), 1, '... checkout message got logged' )
                   or diag 'got log messages: ', explain $tzil->log_messages;
             }
         }

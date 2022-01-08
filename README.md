@@ -10,6 +10,7 @@ Version 0.003
 
     # in dist.ini:
     [Git::Checkout]
+    :version = 0.004
     repo = https://github.com/skirmess/dzil-inc.git
 
 # DESCRIPTION
@@ -23,6 +24,7 @@ or plugins from this repository.
 
     # in dist.ini
     [Git::Checkout]
+    :version = 0.004
     repo = https://github.com/skirmess/dzil-inc.git
 
     ; add the lib directory inside the checked out Git repository to @INC
@@ -33,12 +35,22 @@ or plugins from this repository.
     ; directory
     [@BundleFromRepository]
 
+Git version 1.7.10 or later is required.
+
 # USAGE
 
-## checkout
+## branch / revision / tag
+
+Available since version 0.004.
 
 Specifies what to check out. This can be a branch, a tag or a revision.
-Defaults to `master`.
+Only one of these three options can be used.
+
+If none is specified it defaults to the branch returned by
+
+    git symbolic-ref -q --short refs/remotes/origin/HEAD
+
+and if that doesn't exist to the branch `master`.
 
 ## dir
 
@@ -48,7 +60,7 @@ to the basename of the repo without the `.git` suffix.
 ## push\_url
 
 Allows you to specify a different push url for the repositories origin. One
-possible scenario would be if you would like to clone via http but push via
+possible scenario would be if you would like to clone via https but push via
 ssh. This is optional.
 
 ## repo

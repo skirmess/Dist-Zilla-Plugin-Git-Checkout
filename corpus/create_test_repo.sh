@@ -17,6 +17,7 @@ git config user.name Test
 perl -MPath::Tiny -e 'path(q{A})->spew(q{5})'
 git add A
 git commit -m 'initial commit'
+git tag v47
 
 perl -MPath::Tiny -e 'path(q{A})->spew(q{7})'
 git add A

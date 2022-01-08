@@ -6,3 +6,4 @@ flowcontrol = die skip
 [-Modules::RequireExplicitInclusion]
 [-NamingConventions::Capitalization]
 [-RegularExpressions::ProhibitUselessTopic]
+[-Subroutines::ProtectPrivateSubs]

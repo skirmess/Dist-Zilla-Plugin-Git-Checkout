@@ -10,7 +10,7 @@ use Moose;
 
 with 'Dist::Zilla::Role::Plugin';
 
-use Git::Background 0.002;
+use Git::Background 0.003;
 use MooseX::Types::Moose qw(Str);
 use Path::Tiny;
 

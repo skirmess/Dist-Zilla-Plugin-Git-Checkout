@@ -1,5 +1,5 @@
 requires 'Dist::Zilla::Role::BeforeRelease';
-requires 'Git::Background', '0.002';
+requires 'Git::Background', '0.003';
 requires 'Git::Version::Compare';
 requires 'Moose';
 requires 'MooseX::Types::Moose';
@@ -162,6 +162,7 @@ on develop => sub {
         requires 'Dist::Zilla::File::OnDisk';
         requires 'Dist::Zilla::Plugin::AutoPrereqs';
         requires 'Dist::Zilla::Plugin::AutoPrereqs::Perl::Critic';
+        requires 'Dist::Zilla::Plugin::Bootstrap::lib';
         requires 'Dist::Zilla::Plugin::CheckChangesHasContent';
         requires 'Dist::Zilla::Plugin::CheckIssues';
         requires 'Dist::Zilla::Plugin::CheckMetaResources';

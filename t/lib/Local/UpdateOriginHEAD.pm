@@ -1,4 +1,4 @@
-package Local::RemoveOrigin;
+package Local::UpdateOriginHEAD;
 
 use 5.006;
 use strict;
@@ -30,7 +30,7 @@ around plugin_from_config => sub {
 
         my $ok = eval {
             my $workspace = path( $instance->zilla->root )->child('ws');
-            Git::Background->run( qw(remote remove origin), { dir => $workspace } )->get;
+            Git::Background->run( qw(remote set-head origin dev), { dir => $workspace } )->get;
 
             1;
         };

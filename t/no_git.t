@@ -4,7 +4,7 @@ use 5.006;
 use strict;
 use warnings;
 
-use Git::Background 0.002;
+use Git::Background 0.003;
 use Path::Tiny;
 use Test::DZil;
 use Test::Fatal;
@@ -44,7 +44,6 @@ sub main {
         };
 
         like( $exception, qr{ \Q[Git::Checkout] No 'git' in PATH\E }xsm, q{throws an exception if there is no 'git' in PATH} );
-
     }
 
     done_testing;
