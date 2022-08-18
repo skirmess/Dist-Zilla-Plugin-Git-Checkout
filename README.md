@@ -88,14 +88,6 @@ public review and contribution under the terms of the license.
 
 Sven Kirmess <sven.kirmess@kzone.ch>
 
-# COPYRIGHT AND LICENSE
-
-This software is Copyright (c) 2020-2022 by Sven Kirmess.
-
-This is free software, licensed under:
-
-    The (two-clause) FreeBSD License
-
 # SEE ALSO
 
 [Dist::Zilla](https://metacpan.org/pod/Dist%3A%3AZilla), [lib](https://metacpan.org/pod/lib)

@@ -47,4 +47,3 @@ resources:
   homepage: https://github.com/skirmess/Dist-Zilla-Plugin-Git-Checkout
   repository: https://github.com/skirmess/Dist-Zilla-Plugin-Git-Checkout.git
 version: '0.004'
-x_spdx_expression: BSD-2-Clause-FreeBSD

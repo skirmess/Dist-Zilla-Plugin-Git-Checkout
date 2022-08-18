@@ -1,8 +1,24 @@
-package Dist::Zilla::Plugin::Git::Checkout;
+# vim: ts=4 sts=4 sw=4 et: syntax=perl
+#
+# Copyright (c) 2020-2022 Sven Kirmess
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 use 5.006;
 use strict;
 use warnings;
+
+package Dist::Zilla::Plugin::Git::Checkout;
 
 our $VERSION = '0.004';
 
@@ -12,7 +28,7 @@ with 'Dist::Zilla::Role::BeforeRelease';
 
 use Git::Background 0.003;
 use Git::Version::Compare ();
-use MooseX::Types::Moose qw(Bool Str);
+use MooseX::Types::Moose  qw(Bool Str);
 use Path::Tiny;
 use Term::ANSIColor qw(colored);
 
@@ -383,18 +399,8 @@ L<https://github.com/skirmess/Dist-Zilla-Plugin-Git-Checkout>
 
 Sven Kirmess <sven.kirmess@kzone.ch>
 
-=head1 COPYRIGHT AND LICENSE
-
-This software is Copyright (c) 2020-2022 by Sven Kirmess.
-
-This is free software, licensed under:
-
-  The (two-clause) FreeBSD License
-
 =head1 SEE ALSO
 
 L<Dist::Zilla>, L<lib>
 
 =cut
-
-# vim: ts=4 sts=4 sw=4 et: syntax=perl
